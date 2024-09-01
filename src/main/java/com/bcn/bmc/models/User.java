@@ -73,16 +73,16 @@ public class User {
     @Column(name = "user_role", nullable = false)
     private UserRole userRole;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserDocument> documents;
-
-    public List<UserDocument> getDocuments() {
-        return documents;
-    }
-
-    public void setDocuments(List<UserDocument> documents) {
-        this.documents = documents;
-    }
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<UserDocument> documents;
+//
+//    public List<UserDocument> getDocuments() {
+//        return documents;
+//    }
+//
+//    public void setDocuments(List<UserDocument> documents) {
+//        this.documents = documents;
+//    }
 
     public ActiveStatus getStatus() {
         return status;

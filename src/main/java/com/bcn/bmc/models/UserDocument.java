@@ -16,6 +16,18 @@ public class UserDocument {
     @Column(name = "file_type", nullable = false)
     private String fileType;
 
+    @Column(name = "file_size", nullable = false)
+    private Long fileSize;
+
+    @Lob
+    @Column(name = "data", nullable = false)
+    private byte[] data;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -63,15 +75,4 @@ public class UserDocument {
     public void setUser(User user) {
         this.user = user;
     }
-
-    @Column(name = "file_size", nullable = false)
-    private Long fileSize;
-
-    @Lob
-    @Column(name = "data", nullable = false)
-    private byte[] data;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
 }
