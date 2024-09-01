@@ -61,7 +61,7 @@ public class AuthenticationService {
             user.setStatus(request.getStatus() != null ? request.getStatus() : ActiveStatus.ACTIVE);
             user.setNewUser(true);
             user.setAddress(request.getAddress());
-            user.setDocuments(request.getDocuments());
+//            user.setDocuments(request.getDocuments());
 
             user = repository.save(user);
 
