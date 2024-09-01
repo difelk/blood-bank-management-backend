@@ -40,7 +40,6 @@ CREATE TABLE users (
     nic VARCHAR(20),
     dob DATE,
     user_role ENUM('ADMIN', 'USER', 'SUPER_ADMIN') NOT NULL,
-    address_id BIGINT,
     status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
     organization_id BIGINT,
     is_new_user BOOLEAN NOT NULL DEFAULT TRUE,
@@ -105,6 +104,7 @@ INSERT INTO users (
     TRUE
 );
 
+select * from users;
 select * from user_documents;
 
 
