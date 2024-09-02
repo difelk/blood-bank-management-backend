@@ -74,6 +74,11 @@ public class UserController {
         return userAddressService.createAddress(address);
     }
 
+    @PutMapping("/address")
+// @PreAuthorize("hasAuthority('ROLE_USER')")
+    public UserAddressResponse updateAddress(@RequestBody Address address) {
+        return userAddressService.updateAddress(address);
+    }
 
     @GetMapping("/address/{userid}")
     public Address getAddressByUser(@PathVariable Long userid){

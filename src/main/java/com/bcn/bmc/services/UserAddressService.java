@@ -34,6 +34,24 @@ public class UserAddressService {
     }
 
 
+    @Transactional
+    public UserAddressResponse updateAddress(Address newAddress) {
+        Optional<Address> addressOptional = addressRepository.findAddressByUserId(Long.parseLong(newAddress.getUserId()));
+        if (addressOptional.isPresent()) {
+            Address existingAddress = addressOptional.get();
+            existingAddress.setStreetNumber(newAddress.getStreetNumber());
+            existingAddress.setStreetName(newAddress.getStreetName());
+            existingAddress.setCity(newAddress.getCity());
+            existingAddress.setState(newAddress.getState());
+            existingAddress.setZipCode(newAddress.getZipCode());
+            Address savedAddress = addressRepository.save(existingAddress);
+            return new UserAddressResponse(savedAddress.getId(), "Address Updated successfully");
+        } else {
+            return createAddress(newAddress);
+        }
+    }
+
+
     public Address getAddressByUserId(Long userId){
         try {
             Optional<Address> address = addressRepository.findAddressByUserId(userId);
