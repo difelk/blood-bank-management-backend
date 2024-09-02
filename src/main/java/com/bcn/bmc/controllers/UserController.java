@@ -59,10 +59,10 @@ public class UserController {
         return ResponseEntity.ok(userService.updatePassword(request));
     }
 
-    @DeleteMapping("/{nic}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<UserResponse> deleteUserByNic(@PathVariable String nic) {
-        return ResponseEntity.ok(userService.deleteUserByNic(nic));
+    @DeleteMapping("/{id}")
+//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<UserResponse> deleteUserByUserId(@PathVariable long id) {
+        return ResponseEntity.ok(userService.deleteUserByUserId(id));
     }
 
 
