@@ -1,5 +1,6 @@
 package com.bcn.bmc.services;
 
+import com.bcn.bmc.enums.ActiveStatus;
 import com.bcn.bmc.models.Address;
 import com.bcn.bmc.models.Password;
 import com.bcn.bmc.models.User;
@@ -30,12 +31,25 @@ public class UserService {
         try {
             Optional<User> user = userRepository.findUserByNic(nic);
             System.out.println("user - " + user);
+            return user.orElse(null);
+        } catch (Exception e) {
+            System.out.println("Error finding user by NIC: " + e.getMessage());
+            return null;
+        }
+
+    }
+
+
+    public User findUserById(long id){
+        try {
+            Optional<User> user = userRepository.findUserById(id);
+            System.out.println("user - " + user);
             if(user.isPresent()) {
                 return user.get();
             }
             return null;
         } catch (Exception e) {
-            System.out.println("Error finding user by NIC: " + e.getMessage());
+            System.out.println("Error finding user by Id: " + e.getMessage());
             return null;
         }
 
@@ -114,7 +128,7 @@ public class UserService {
 
     public List<User> getAllUsers() {
         try {
-            return userRepository.findAll();
+            return userRepository.findAllActiveUsers();
         } catch (Exception e) {
             System.out.println("Failed to fetch all users: " + e.getMessage());
             return null;
@@ -146,6 +160,32 @@ public class UserService {
         }
         return userResponse;
     }
+
+
+    @Transactional
+    public UserResponse deleteUserByUserId(long id) {
+        UserResponse userResponse = new UserResponse();
+        User user = findUserById(id);
+        if (user != null) {
+            try {
+                user.setStatus(ActiveStatus.INACTIVE);
+                userRepository.save(user);
+
+                userResponse.setMessage("User has been marked as deleted");
+                userResponse.setStatus(200);
+            } catch (Exception e) {
+                userResponse.setMessage("Failed to mark user as deleted: " + e.getMessage());
+                userResponse.setStatus(500);
+            }
+        } else {
+            userResponse.setMessage("User does not exist");
+            userResponse.setStatus(404);
+        }
+        return userResponse;
+    }
+
+
+
 
 
 }
