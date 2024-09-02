@@ -114,4 +114,11 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+
+    @DeleteMapping("/documents/{documentId}")
+//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<UserDocumentResponse> deleteDocumentById(@PathVariable long documentId) {
+        return userDocumentService.deleteDocumentById(documentId);
+    }
+
 }
