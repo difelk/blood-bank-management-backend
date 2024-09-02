@@ -16,7 +16,6 @@ public class UserDocumentResponse {
         this.data = data;
     }
 
-    // Getters and setters
     public Long getId() {
         return id;
     }
