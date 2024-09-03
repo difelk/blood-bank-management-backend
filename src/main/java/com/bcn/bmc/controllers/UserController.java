@@ -41,6 +41,13 @@ public class UserController {
         return userService.findUserByNic(nic);
     }
 
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public User getUserById(@PathVariable Long id){
+        return userService.findUserById(id);
+    }
+
     @GetMapping("/username/{username}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public User getUsersByUserName(@PathVariable String username){
