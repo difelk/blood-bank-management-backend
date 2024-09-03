@@ -60,6 +60,7 @@ public class JwtService {
                 .claim("firstName", user.getFirstName())
                 .claim("lastName", user.getLastName())
                 .claim("role", user.getUserRole())
+                .claim("id", user.getId())
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .signWith(getSigninKey())
