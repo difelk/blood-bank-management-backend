@@ -104,8 +104,28 @@ INSERT INTO users (
     TRUE
 );
 
+
+
+-- new tables 2024 09 03
+
+
+CREATE TABLE user_activity (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    activity_type VARCHAR(255) NOT NULL,
+    activity_details VARCHAR(1000),
+    ip_address VARCHAR(255),
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+ALTER TABLE user_activity
+ADD COLUMN activity_status ENUM('SUCCESS', 'FAILURE') NOT NULL DEFAULT 'SUCCESS';
+
+
 select * from users;
 select * from user_documents;
+select * from user_activity;
 
 
 
