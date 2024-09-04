@@ -7,25 +7,32 @@ use bcnetwork;
 );
 
 
+INSERT INTO blood_types (blood_type) VALUES
+    ('A+'),
+    ('A-'),
+    ('B+'),
+    ('B-'),
+    ('AB+'),
+    ('AB-'),
+    ('O+'),
+    ('O-');
+
+CREATE TABLE hospitals (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    hospital_name VARCHAR(255) NOT NULL,
+    contact_no VARCHAR(20),
+    contact_no2 VARCHAR(20),
+    sector VARCHAR(100)
+);
+
+
 CREATE TABLE organizations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    type VARCHAR(255) NOT NULL
+    organization_id INT,
+    organization_name VARCHAR(255),
+    date DATE,
+    FOREIGN KEY (organization_id) REFERENCES hospitals(id)
 );
-
-
-
- CREATE TABLE addresses (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT,
-    street_number VARCHAR(50),
-    street_name VARCHAR(255),
-    city VARCHAR(100),
-    state VARCHAR(100),
-    zip_code VARCHAR(20),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
 
 CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -40,11 +47,11 @@ CREATE TABLE users (
     nic VARCHAR(20),
     dob DATE,
     user_role ENUM('ADMIN', 'USER', 'SUPER_ADMIN') NOT NULL,
+    address_id BIGINT,
     status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
     organization_id BIGINT,
     is_new_user BOOLEAN NOT NULL DEFAULT TRUE,
     FOREIGN KEY (blood_type) REFERENCES blood_types(blood_type),
-    FOREIGN KEY (address_id) REFERENCES addresses(id),
     FOREIGN KEY (organization_id) REFERENCES organizations(id)
 );
 
@@ -59,55 +66,16 @@ CREATE TABLE user_documents (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- creating deafult admin
-
-INSERT INTO blood_types (blood_type) VALUES
-    ('A+'),
-    ('A-'),
-    ('B+'),
-    ('B-'),
-    ('AB+'),
-    ('AB-'),
-    ('O+'),
-    ('O-');
-
-INSERT INTO addresses (street_number, street_name, city, state, zip_code) VALUES
-('123', 'Admin Street', 'Admin City', 'Admin State', '12345');
-
-INSERT INTO organizations (name, type) VALUES ('Blood Bank', 'MAIN');
-
-INSERT INTO users (
-    first_name,
-    last_name,
-    username,
-    password,
-    email,
-    blood_type,
-    contact_number,
-    user_role,
-    address_id,
-    organization_id,
-    status,
-    is_new_user
-) VALUES (
-    'Admin',
-    'User',
-    'admin',
-    '123',
-    'bcnetadmin@yopmail.com',
-    'A+',
-    '000-000-0000',
-    'ADMIN',
-    1,
-    1,
-    'ACTIVE',
-    TRUE
+ CREATE TABLE addresses (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    street_number VARCHAR(50),
+    street_name VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(100),
+    zip_code VARCHAR(20),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
-
-
-
--- new tables 2024 09 03
-
 
 CREATE TABLE user_activity (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -123,22 +91,7 @@ ALTER TABLE user_activity
 ADD COLUMN activity_status ENUM('SUCCESS', 'FAILURE') NOT NULL DEFAULT 'SUCCESS';
 
 
-select * from users;
-select * from user_documents;
-select * from user_activity;
 
-
-
-
--------- HOSPITAL --------
-
-CREATE TABLE hospitals (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    hospital_name VARCHAR(255) NOT NULL,
-    contact_no VARCHAR(20),
-    contact_no2 VARCHAR(20),
-    sector VARCHAR(100)
-);
 
 
 CREATE TABLE hospital_addresses (
@@ -165,8 +118,4 @@ select * from hospitals;
 select * from hospital_addresses;
 select * from hospital_documents;
 
-
-
-
-
-
+select * from organizations;

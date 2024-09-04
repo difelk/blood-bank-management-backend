@@ -76,6 +76,11 @@ public class HospitalController {
         return ResponseEntity.ok(hospitalAddressService.createAddress(address));
     }
 
+    @GetMapping("/address")
+    public List<HospitalAddress> getAllAddresses() {
+        return hospitalAddressService.getAllAddresses();
+    }
+
     @PutMapping("/address")
     public ResponseEntity<HospitalAddressResponse> updateAddress(@RequestBody HospitalAddress address) {
         return ResponseEntity.ok(hospitalAddressService.updateAddress(address));

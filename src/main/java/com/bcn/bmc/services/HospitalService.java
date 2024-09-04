@@ -2,32 +2,48 @@ package com.bcn.bmc.services;
 
 import com.bcn.bmc.models.Hospital;
 import com.bcn.bmc.models.HospitalResponse;
+import com.bcn.bmc.models.Organization;
 import com.bcn.bmc.repositories.HospitalRepository;
+import com.bcn.bmc.repositories.OrganizationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class HospitalService {
 
     private final HospitalRepository hospitalRepository;
 
-    public HospitalService(HospitalRepository hospitalRepository) {
+    private final OrganizationRepository organizationRepository;
+
+    public HospitalService(HospitalRepository hospitalRepository, OrganizationRepository organizationRepository) {
         this.hospitalRepository = hospitalRepository;
+        this.organizationRepository = organizationRepository;
     }
 
+    @Transactional
     public Hospital createHospital(Hospital hospital) {
         try {
-            return hospitalRepository.save(hospital);
+            Hospital savedHospital = hospitalRepository.save(hospital);
+
+            Organization organization = new Organization(
+                    Math.toIntExact(savedHospital.getId()),
+                    savedHospital.getHospitalName(),
+                    LocalDate.now()
+            );
+            organizationRepository.save(organization);
+
+            return savedHospital;
         } catch (Exception e) {
-            throw new RuntimeException("Error creating hospital: " + e.getMessage(), e);
+            throw new RuntimeException("Error creating hospital and organization: " + e.getMessage(), e);
         }
     }
 
     public List<Hospital> getAllHospitals() {
         try {
+
             return hospitalRepository.findAll();
         } catch (Exception e) {
             System.out.println("Error fetching all hospitals: " + e.getMessage());

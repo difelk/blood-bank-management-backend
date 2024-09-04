@@ -1,5 +1,6 @@
 package com.bcn.bmc.services;
 
+import com.bcn.bmc.models.Hospital;
 import com.bcn.bmc.models.HospitalAddress;
 import com.bcn.bmc.models.HospitalAddressResponse;
 import com.bcn.bmc.repositories.HospitalAddressRepository;
@@ -7,6 +8,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -49,6 +51,16 @@ public class HospitalAddressService {
             return hospitalAddressRepository.findByHospitalId(hospitalId).stream().findFirst().orElse(null);
         } catch (Exception e) {
             System.out.println("Error finding address by hospital ID: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public List<HospitalAddress> getAllAddresses() {
+        try {
+
+            return hospitalAddressRepository.findAll();
+        } catch (Exception e) {
+            System.out.println("Error fetching all adresses: " + e.getMessage());
             return null;
         }
     }
