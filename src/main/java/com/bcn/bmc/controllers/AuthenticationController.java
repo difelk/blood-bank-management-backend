@@ -2,6 +2,7 @@ package com.bcn.bmc.controllers;
 
 import com.bcn.bmc.models.AuthenticationResponse;
 import com.bcn.bmc.models.User;
+import com.bcn.bmc.models.VerificationStatus;
 import com.bcn.bmc.services.AuthenticationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,6 +32,11 @@ public class AuthenticationController {
     ) {
         System.out.println("register - " + request.getDob());
         return ResponseEntity.ok(authService.register(request));
+    }
+
+    @GetMapping("/login/email/{email}")
+    public VerificationStatus getEmailVerify(@PathVariable String email){
+        return authService.getEmailVerify(email);
     }
 
     @PostMapping("/validateToken")

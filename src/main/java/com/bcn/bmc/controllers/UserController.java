@@ -60,6 +60,7 @@ public class UserController {
         return  ResponseEntity.ok(userService.updateUser(data));
     }
 
+
     @PutMapping("/password")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<UserResponse> updatePassword(@RequestBody Password request){
