@@ -5,6 +5,7 @@ import com.bcn.bmc.common.ConvertData;
 import com.bcn.bmc.enums.ActiveStatus;
 import com.bcn.bmc.models.AuthenticationResponse;
 import com.bcn.bmc.models.User;
+import com.bcn.bmc.models.VerificationStatus;
 import com.bcn.bmc.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceException;
@@ -16,6 +17,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionSystemException;
+
+import java.util.Optional;
 
 @Service
 public class AuthenticationService {
@@ -112,6 +115,24 @@ public class AuthenticationService {
     public boolean isValidToken(String token) {
         System.out.println("isValidToken  in auth service: " + token);
         return jwtService.isValidToken(token);
+    }
+
+
+    public VerificationStatus getEmailVerify(String email) {
+        try {
+            Optional<User> user = repository.findUserByEmail(email);
+
+            System.out.println("user - " + user);
+            if(user.isPresent()) {
+                return new VerificationStatus(true, "email exist");
+            }else{
+                return new VerificationStatus(false, "email not exist");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error finding user by NIC: " + e.getMessage());
+            return new VerificationStatus(false, "something went wrong");
+        }
     }
 
 

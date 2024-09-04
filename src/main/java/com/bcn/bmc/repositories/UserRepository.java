@@ -20,6 +20,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select u from User u where u.nic =?1")
     Optional<User> findUserByNic(@Param("nic") String nic);
 
+    @Query("select u from User u where u.email =?1")
+    Optional<User> findUserByEmail(@Param("email") String email);
+
     @Query("select u from User u where u.id =?1")
     Optional<User> findUserById(@Param("id") long id);
 
