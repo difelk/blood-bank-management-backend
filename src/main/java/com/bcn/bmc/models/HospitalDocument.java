@@ -27,6 +27,20 @@ public class HospitalDocument {
     @JoinColumn(name = "hospital_id", nullable = false)
     private Hospital hospital;
 
+    public HospitalDocument() {
+    }
+
+    public HospitalDocument(Long id, String fileName, String fileType, Long fileSize, byte[] data, Hospital hospital) {
+        this.id = id;
+        this.fileName = fileName;
+        this.fileType = fileType;
+        this.fileSize = fileSize;
+        this.data = data;
+        this.hospital = hospital;
+    }
+
+
+
     public Long getId() {
         return id;
     }

@@ -1,14 +1,13 @@
 package com.bcn.bmc.services;
 
-import com.bcn.bmc.models.Hospital;
-import com.bcn.bmc.models.HospitalResponse;
-import com.bcn.bmc.models.Organization;
+import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.HospitalRepository;
 import com.bcn.bmc.repositories.OrganizationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -105,4 +104,69 @@ public class HospitalService {
             return new HospitalResponse(-1, "Failed to delete hospital: " + e.getMessage());
         }
     }
+
+    public List<HospitalJoinedDetails> getAllHospitalJoinedDetails() {
+//        List<HospitalJoinedDetails> hospitalDetails = hospitalRepository.findHospitalsWithAddresses();
+//
+//        for (HospitalJoinedDetails detail : hospitalDetails) {
+//            List<HospitalDocument> documents = hospitalRepository.findDocumentsByHospitalId(detail.getId());
+//            detail.setHospitalDocuments(documents);
+//        }
+//
+//        return hospitalDetails;
+
+//        HospitalDocument hospitalDocument = new HospitalDocument();
+//        HospitalAddress hospitalAddress = new HospitalAddress();
+        List<HospitalJoinedDetails> hospitalJoinedDetails = new ArrayList<>();
+
+        HospitalAddressService hospitalAddressService = new HospitalAddressService();
+        HospitalDocumentService hospitalDocumentService = new HospitalDocumentService();
+
+        List<Hospital> hospitalBasicData = getAllHospitals();
+        List<HospitalAddress> hospitalAddressData = hospitalAddressService.getAllAddresses();
+        List<HospitalDocument> hospitalDocumentsData = hospitalDocumentService.getAllDocuments();
+
+        System.out.println("hospitalAddressData - " + hospitalAddressData.size());
+        System.out.println("hospitalDocumentsData - " + hospitalDocumentsData.size());
+
+        for(Hospital hospital : hospitalBasicData){
+
+            for(HospitalAddress address : hospitalAddressData){
+
+                if(hospital.getId() == address.getHospitalId()){
+
+                for(HospitalDocument document : hospitalDocumentsData){
+
+                    HospitalJoinedDetails hospitalJoinedDetail = new HospitalJoinedDetails();
+
+                    if(hospital.getId() == document.getHospital().getId()){
+                        hospitalJoinedDetail.setId(hospital.getId());
+                        hospitalJoinedDetail.setHospitalName(hospital.getHospitalName());
+                        hospitalJoinedDetail.setSector(hospital.getSector());
+                        hospitalJoinedDetail.setContactNo1(hospital.getContactNo1());
+                        hospitalJoinedDetail.setContactNo2(hospital.getContactNo2());
+                        hospitalJoinedDetail.setStreetNumber(address.getStreetNumber());
+                        hospitalJoinedDetail.setStreetName(address.getStreetName());
+                        hospitalJoinedDetail.setCity(address.getCity());
+
+                        List<HospitalDocument> docs = new ArrayList<>();
+
+                        for(HospitalDocument document2 : hospitalDocumentsData){
+                            if(hospital.getId() == document2.getHospital().getId()){
+                                docs.add(new HospitalDocument(document2.getId(),document2.getFileName(),document2.getFileType(),document2.getFileSize(),document2.getData(),document2.getHospital()));
+                            }
+                        }
+                        hospitalJoinedDetail.setHospitalDocuments(docs);
+                        hospitalJoinedDetails.add(hospitalJoinedDetail);
+                    }
+
+                }
+                }
+            }
+        }
+        return hospitalJoinedDetails;
+
+    }
+
+
 }

@@ -1,6 +1,7 @@
 package com.bcn.bmc.services;
 
 import com.bcn.bmc.models.Hospital;
+import com.bcn.bmc.models.HospitalAddress;
 import com.bcn.bmc.models.HospitalDocument;
 import com.bcn.bmc.models.HospitalDocumentResponse;
 import com.bcn.bmc.repositories.HospitalDocumentRepository;
@@ -43,6 +44,16 @@ public class HospitalDocumentService {
 
     public List<HospitalDocument> getHospitalDocumentsById(Long hospitalId) {
         return hospitalDocumentRepository.findByHospitalId(hospitalId);
+    }
+
+    public List<HospitalDocument> getAllDocuments() {
+        try {
+
+            return hospitalDocumentRepository.findAll();
+        } catch (Exception e) {
+            System.out.println("Error fetching all documents: " + e.getMessage());
+            return null;
+        }
     }
 
     @Transactional
