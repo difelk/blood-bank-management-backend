@@ -1,6 +1,7 @@
 package com.bcn.bmc.repositories;
 
 
+import com.bcn.bmc.enums.ActiveStatus;
 import com.bcn.bmc.models.User;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -43,5 +44,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("update User u set u.password = :password where u.nic = :nic")
     void resetPassword(@Param("nic") String nic, @Param("password") String password);
 
+    @Modifying
+    @Transactional
+    @Query("update User u set u.password = :password, u.isNewUser = :isNewUser where u.id = :id")
+    int resetPasswordByUserId(@Param("id") long id, @Param("password") String password, @Param("isNewUser") boolean isNewUser);
 
 }

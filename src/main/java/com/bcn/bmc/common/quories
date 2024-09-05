@@ -114,8 +114,25 @@ CREATE TABLE hospital_documents (
     FOREIGN KEY (hospital_id) REFERENCES hospitals(id)
 );
 
+
+2024 09 05 forget password verification code table
+
+CREATE TABLE verification_codes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    code VARCHAR(255) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL,
+    purpose VARCHAR(255),
+    status ENUM('PENDING', 'USED', 'EXPIRED') NOT NULL DEFAULT 'PENDING',
+    CONSTRAINT fkvc_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 select * from hospitals;
 select * from hospital_addresses;
 select * from hospital_documents;
+
+select * from verification_codes;
 
 select * from organizations;
