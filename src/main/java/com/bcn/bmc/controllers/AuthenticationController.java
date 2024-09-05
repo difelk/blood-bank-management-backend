@@ -1,8 +1,6 @@
 package com.bcn.bmc.controllers;
 
-import com.bcn.bmc.models.AuthenticationResponse;
-import com.bcn.bmc.models.User;
-import com.bcn.bmc.models.VerificationStatus;
+import com.bcn.bmc.models.*;
 import com.bcn.bmc.services.AuthenticationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -39,9 +37,25 @@ public class AuthenticationController {
         return authService.getEmailVerify(email);
     }
 
+
+    @PostMapping("/login/validation-code")
+    public VerificationStatus getVerificationCode(@RequestBody EmailRequest email) {
+        System.out.println("getVerificationCode 1 : " + email.getEmail());
+        return authService.getVerificationCode(email.getEmail());
+    }
+
+    @PostMapping("/login/verification-code")
+    public VerificationStatus verifyCode(@RequestBody EmailRequest email) {
+        return authService.verifyCode(email.getEmail(), email.getCode());
+    }
+
+    @PostMapping("/login/reset-password")
+    public VerificationStatus resetPassword(@RequestBody PasswordReset details) {
+        return authService.resetPassword(details.getEmail(), details.getCode(), details.getPassword());
+    }
+
     @PostMapping("/validateToken")
     public ResponseEntity<Boolean> validateToken(@RequestBody String token) {
-        System.out.println("post token - " + token);
         boolean isValid = authService.isValidToken(token);
         return ResponseEntity.ok(isValid);
     }

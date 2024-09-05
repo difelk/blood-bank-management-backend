@@ -5,9 +5,10 @@ public class VerificationStatus {
         return isExist;
     }
 
-    public VerificationStatus(boolean isExist, String ExtraDetails){
+    public VerificationStatus(boolean isExist, String ExtraDetails, long userId){
         this.isExist = isExist;
         this.ExtraDetails = ExtraDetails;
+        this.userid = userId;
     }
     public void setExist(boolean exist) {
         isExist = exist;
@@ -19,6 +20,16 @@ public class VerificationStatus {
 
     public void setExtraDetails(String extraDetails) {
         ExtraDetails = extraDetails;
+    }
+
+    private long userid;
+
+    public long getUserid() {
+        return userid;
+    }
+
+    public void setUserid(long userid) {
+        this.userid = userid;
     }
 
     private boolean isExist;
