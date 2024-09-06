@@ -30,6 +30,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select u from User u where u.username =?1")
     Optional<User> findUserByUsername(@Param("username") String username);
 
+
+    @Query("SELECT u FROM User u WHERE u.username = :username AND u.password = :password AND u.status <> 'INACTIVE'")
+    User findIsUserNew(@Param("username") String username, @Param("password") String password);
+
+
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE User u SET u.isNewUser = :activeStatus WHERE u.email = :email AND u.password = :password AND u.status <> 'INACTIVE'")
+    int setUserActive(@Param("email") String email, @Param("password") String password, @Param("activeStatus") boolean activeStatus);
+
+
     @Modifying
     @Query("delete from User d where d.nic = :nic")
     void deleteUserByNic(@Param("nic") String nic);
@@ -41,8 +53,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Modifying
     @Transactional
-    @Query("update User u set u.password = :password where u.nic = :nic")
-    void resetPassword(@Param("nic") String nic, @Param("password") String password);
+    @Query("update User u set u.password = :password, u.isNewUser = :userStatus where u.nic = :nic")
+    void resetPassword(@Param("nic") String nic, @Param("password") String password, @Param("password") int userStatus);
 
     @Modifying
     @Transactional
