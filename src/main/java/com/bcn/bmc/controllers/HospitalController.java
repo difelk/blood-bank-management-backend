@@ -121,4 +121,9 @@ public class HospitalController {
     public ResponseEntity<HospitalDocumentResponse> deleteDocumentById(@PathVariable Long documentId) {
         return hospitalDocumentService.deleteDocumentById(documentId);
     }
+
+    @GetMapping("/all")
+    public List<HospitalJoinedDetails> getAllHospitalJoinedDetails(){
+        return hospitalService.getAllHospitalJoinedDetails();
+    }
 }

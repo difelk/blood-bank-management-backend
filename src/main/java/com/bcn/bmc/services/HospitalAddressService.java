@@ -4,6 +4,7 @@ import com.bcn.bmc.models.Hospital;
 import com.bcn.bmc.models.HospitalAddress;
 import com.bcn.bmc.models.HospitalAddressResponse;
 import com.bcn.bmc.repositories.HospitalAddressRepository;
+import com.bcn.bmc.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,9 @@ public class HospitalAddressService {
     @Autowired
     private HospitalAddressRepository hospitalAddressRepository;
 
+//    public HospitalAddressService(HospitalAddressRepository hospitalAddressRepository) {
+//        this.hospitalAddressRepository = hospitalAddressRepository;
+//    }
     @Transactional
     public HospitalAddressResponse createAddress(HospitalAddress address) {
         try {
