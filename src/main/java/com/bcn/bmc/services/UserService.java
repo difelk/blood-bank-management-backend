@@ -113,7 +113,7 @@ public class UserService {
         password.setNic(request.getNic());
         password.setNewPassword(passwordEncoder.encode(request.getNewPassword()));
         try{
-            userRepository.resetPassword(password.getNic(), password.getNewPassword());
+            userRepository.resetPassword(password.getNic(), password.getNewPassword(), 0);
             userResponse.setMessage("password reset Successful");
             userResponse.setStatus(200);
         }catch (Exception e){

@@ -96,6 +96,20 @@ public class AuthenticationService {
     }
 
 
+    public boolean IsFirstTimeLogin(User request) {
+        User user = repository.findIsUserNew(request.getUsername(), request.getPassword());
+        System.out.println("called isUserNew  getUsername(): " + user.getUsername());
+        System.out.println("called isUserNew  isNewUser(): " + user.isNewUser());
+        return user.isNewUser();
+    }
+
+
+    public int FirstTimeLoginValidated(String email, String password){
+        return repository.setUserActive(email, password, false);
+
+
+    }
+
     public AuthenticationResponse authenticate(User request) {
         System.out.println("auth res username: " + request.getUsername());
         System.out.println("auth res password: " + request.getPassword());
@@ -110,6 +124,9 @@ public class AuthenticationService {
             User user = repository.findByUsername(request.getUsername()).orElseThrow();
             System.out.println("checking username validation... : " + user.getUsername());
             String jwt = jwtService.generateToken(user);
+            if(IsFirstTimeLogin(user)){
+                return new AuthenticationResponse(-1,"", "First Time Login", user.getEmail());
+            }
             return new AuthenticationResponse(-1,jwt, "User login was successful");
         } catch (AuthenticationException e) {
             System.out.println("error: " + e.getMessage());
@@ -152,7 +169,7 @@ public class AuthenticationService {
             String createdCode = createVerificationCode(code, email, verificationStatus.getUserid(), "forgot password", com.bcn.bmc.enums.VerificationStatus.PENDING);
             if (!createdCode.isEmpty()) {
                 emailService.sendVerificationEmail(email,"Verification Code", createdCode);
-                return new VerificationStatus(true, "Verification code has been sent to your email. Please check your inbox or the spam folder.", -1);
+                return new VerificationStatus(true, "A verification code has been sent to your email. Please check your inbox or spam folder.", -1);
             } else {
                 return new VerificationStatus(false, "Verification Code Creation failed!", -1);
             }
@@ -167,7 +184,7 @@ public class AuthenticationService {
             return  new VerificationStatus(false, "Invalid Verification Code", -1);
         }
         else if(verificationCode.getStatus().equals(com.bcn.bmc.enums.VerificationStatus.PENDING) && LocalDateTime.now().isBefore(verificationCode.getExpiresAt())){
-            return  new VerificationStatus(true, "READY TO RESET", verificationCode.getUserId());
+            return  new VerificationStatus(true, "Verification code validated", verificationCode.getUserId());
         }else{
             if(!verificationCode.getStatus().equals(com.bcn.bmc.enums.VerificationStatus.PENDING)){
                 return  new VerificationStatus(false, "verification code is already used", verificationCode.getUserId());
@@ -195,12 +212,16 @@ public class AuthenticationService {
                 PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
                 String encryptedPassword = passwordEncoder.encode(newPassword);
                 int updatedRows =  repository.resetPasswordByUserId(verificationStatus.getUserid(), encryptedPassword, false);
-
+                System.out.println("updatedRows = " + updatedRows);
                 if (updatedRows > 0) {
-
                   int verificationUsed =  verificationCodeRepository.updateVerificationCode(com.bcn.bmc.enums.VerificationStatus.USED, email, code);
-                    return new VerificationStatus(true, "Password reset successfully. Please log in using your new password.", verificationStatus.getUserid());
-                } else {
+                    System.out.println("verificationUsed = " + verificationUsed);
+                  if(FirstTimeLoginValidated(email, encryptedPassword) > 0) {
+                      return new VerificationStatus(true, "Password reset successfully. Please log in using your new password.", verificationStatus.getUserid());
+                  }else{
+                      return new VerificationStatus(false, "Password reset failed due to a internal issue. please try again", -1);
+                  }
+                  } else {
                     return new VerificationStatus(false, "Password reset failed. Please try again and ensure you have entered the correct email and verification code sent to your email.", -1);
                 }
             }else{
