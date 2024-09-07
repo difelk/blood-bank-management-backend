@@ -2,7 +2,9 @@ package com.bcn.bmc.services;
 
 import com.bcn.bmc.enums.BloodType;
 import com.bcn.bmc.models.BloodTypeDTO;
+import com.bcn.bmc.models.Organization;
 import com.bcn.bmc.repositories.BloodTypeRepository;
+import com.bcn.bmc.repositories.OrganizationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,9 @@ public class InfoService {
     @Autowired
     private BloodTypeRepository bloodTypeRepository;
 
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
     public List<BloodTypeDTO> getAllBloodGroups() {
         return bloodTypeRepository.findAll().stream()
                 .map(bloodTypeEntity -> new BloodTypeDTO(
@@ -23,5 +28,10 @@ public class InfoService {
                         bloodTypeEntity.getBloodTypeEnum().getDisplayName()
                 ))
                 .collect(Collectors.toList());
+    }
+
+
+    public List<Organization> getAllOrganizations() {
+        return organizationRepository.findAll();
     }
 }

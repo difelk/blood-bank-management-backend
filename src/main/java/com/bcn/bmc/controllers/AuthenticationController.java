@@ -28,7 +28,7 @@ public class AuthenticationController {
     public ResponseEntity<AuthenticationResponse> register(
             @RequestBody User request
     ) {
-        System.out.println("register - " + request.getDob());
+        System.out.println("getOrganization cont - " + request.getOrganization());
         return ResponseEntity.ok(authService.register(request));
     }
 
