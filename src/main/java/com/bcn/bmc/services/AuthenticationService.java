@@ -4,6 +4,7 @@ import ch.qos.logback.classic.pattern.DateConverter;
 import com.bcn.bmc.common.ConvertData;
 import com.bcn.bmc.enums.ActiveStatus;
 import com.bcn.bmc.models.*;
+import com.bcn.bmc.repositories.OrganizationRepository;
 import com.bcn.bmc.repositories.UserRepository;
 import com.bcn.bmc.repositories.VerificationCodeRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -37,16 +38,19 @@ public class AuthenticationService {
     private final EmailService emailService;
     private final AuthenticationManager authenticationManager;
 
+    private final OrganizationRepository organizationRepository;
+
 
     public AuthenticationService(UserRepository repository,
                                  PasswordEncoder passwordEncoder,
-                                 JwtService jwtService,EmailService emailService,
+                                 JwtService jwtService,EmailService emailService,OrganizationRepository organizationRepository,
                                  AuthenticationManager authenticationManager, VerificationCodeRepository verificationCodeRepository) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
         this.verificationCodeRepository = verificationCodeRepository;
+        this.organizationRepository = organizationRepository;
         this.emailService = emailService;
     }
 
@@ -56,7 +60,6 @@ public class AuthenticationService {
             if (repository.findByUsername(request.getUsername()).isPresent()) {
                 return new AuthenticationResponse(-1,null, "User already exists");
             }
-            System.out.println("setting payload to user in service");
             User user = new User();
             user.setFirstName(request.getFirstName());
             user.setLastName(request.getLastName());
@@ -67,15 +70,12 @@ public class AuthenticationService {
             user.setBloodType(request.getBloodType());
             user.setEmail(request.getEmail());
             user.setDob(request.getDob());
-//            user.setOrganizationType(request.getOrganizationType());
             user.setOrganization(request.getOrganization());
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setUserRole(request.getUserRole());
             user.setStatus(request.getStatus() != null ? request.getStatus() : ActiveStatus.ACTIVE);
             user.setNewUser(true);
             user.setAddress(request.getAddress());
-//            user.setDocuments(request.getDocuments());
-            System.out.println("saving payload to db");
             user = repository.save(user);
 
             String jwt = jwtService.generateToken(user);
@@ -118,8 +118,6 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse authenticate(User request) {
-        System.out.println("auth res username: " + request.getUsername());
-        System.out.println("auth res password: " + request.getPassword());
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -127,14 +125,23 @@ public class AuthenticationService {
                             request.getPassword()
                     )
             );
-            System.out.println("checking username validation...");
+
             User user = repository.findByUsername(request.getUsername()).orElseThrow();
-            System.out.println("checking username validation... : " + user.getUsername());
             String jwt = jwtService.generateToken(user);
+            if(user.getOrganization() == null){
+                return new AuthenticationResponse(-1, null, "User Details are Incomplete. User Organization is not found");
+            }
             if(IsFirstTimeLogin(user)){
                 return new AuthenticationResponse(-1,"", "First Time Login", user.getEmail());
             }
-            return new AuthenticationResponse(-1,jwt, "User login was successful");
+//            return new AuthenticationResponse(-1,jwt, "User login was successful");
+            Optional<Organization> userOrganization = organizationRepository.findOrganizationById(user.getOrganization());
+           if(userOrganization.isEmpty() || userOrganization.get().getOrganizationName() == null){
+               return new AuthenticationResponse(-1, null, "User Details are Incomplete. User Organization is not found");
+           }else{
+               return new AuthenticationResponse(user.getId(), jwt, "User login was successful", user.getEmail(), userOrganization.get(), user.getUserRole(), user.getFirstName(),  user.getLastName());
+           }
+
         } catch (AuthenticationException e) {
             System.out.println("error: " + e.getMessage());
             return new AuthenticationResponse(-1,null, "Incorrect username or password. Please try again.");
