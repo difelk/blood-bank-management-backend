@@ -54,6 +54,14 @@ public class UserController {
         return userService.getUserByUsername(username);
     }
 
+
+    @GetMapping("/email/{email}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public User getUsersByEmail(@PathVariable String email){
+        return userService.getUsersByEmail(email);
+    }
+
+
     @PutMapping("/")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<UserResponse> updateUser(@RequestBody User data){

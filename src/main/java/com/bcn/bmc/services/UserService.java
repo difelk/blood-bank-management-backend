@@ -69,6 +69,19 @@ public class UserService {
         }
     }
 
+    public User getUsersByEmail(String email){
+        try {
+            Optional<User> user = userRepository.findUserByEmail(email);
+            if(user.isPresent()) {
+                return user.get();
+            }
+            return null;
+        } catch (Exception e) {
+            System.out.println("Error finding user by Email: " + e.getMessage());
+            return null;
+        }
+    }
+
     public UserResponse updateUser(User data){
         UserResponse userResponse = new UserResponse();
         User existingUser = findUserByNic(data.getNic());

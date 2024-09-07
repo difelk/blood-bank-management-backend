@@ -2,6 +2,7 @@ package com.bcn.bmc.controllers;
 
 import com.bcn.bmc.enums.BloodType;
 import com.bcn.bmc.models.BloodTypeDTO;
+import com.bcn.bmc.models.Organization;
 import com.bcn.bmc.models.User;
 import com.bcn.bmc.services.InfoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,5 +24,10 @@ public class InfoController {
     @GetMapping("/blood-groups")
     public List<BloodTypeDTO> getAllBloodGroups() {
         return infoService.getAllBloodGroups();
+    }
+
+    @GetMapping("/organizations")
+    public List<Organization> getAllOrganizations() {
+        return infoService.getAllOrganizations();
     }
 }

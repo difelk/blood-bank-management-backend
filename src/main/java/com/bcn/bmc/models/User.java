@@ -100,11 +100,11 @@ public class User {
     @Column(name = "status", nullable = false)
     private ActiveStatus status = ActiveStatus.ACTIVE;
 
-    public Organization getOrganization() {
+    public Integer getOrganization() {
         return organization;
     }
 
-    public void setOrganization(Organization organization) {
+    public void setOrganization(Integer organization) {
         this.organization = organization;
     }
 
@@ -116,9 +116,8 @@ public class User {
         isNewUser = newUser;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "organization_id")
-    private Organization organization;
+    @Column(name = "organization_id")
+    private Integer organization;
 
     @Column(name = "is_new_user", nullable = false)
     private boolean isNewUser = true;

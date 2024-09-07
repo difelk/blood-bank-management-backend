@@ -53,7 +53,7 @@ public class EmailService {
                 + "<p>Your account for the BloodCenter Network has been created successfully.</p>"
                 + "<p>Your username is: <strong>" + userName + "</strong></p>"
                 + "<p>Your one-time password is: <strong>" + psw + "</strong></p>"
-                + "<p>Your verification code is: <strong>" + code + ". verification code will expired within 24hrs.in case it was expired you can still request a varification code through login form</strong></p>"
+                + "<p>Your verification code is: <strong>" + code + ". verification code will expired within 24hrs.in case it was expired you can still request a verification code through login form</strong></p>"
                 + "<p>Please log in using these credentials. You will be prompted to enter the verification code.</p>"
                 + "<p>Once you enter the code, you will be able to change your password.</p>"
                 + "<p>Thank you!</p>"

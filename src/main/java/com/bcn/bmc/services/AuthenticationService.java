@@ -56,7 +56,7 @@ public class AuthenticationService {
             if (repository.findByUsername(request.getUsername()).isPresent()) {
                 return new AuthenticationResponse(-1,null, "User already exists");
             }
-
+            System.out.println("setting payload to user in service");
             User user = new User();
             user.setFirstName(request.getFirstName());
             user.setLastName(request.getLastName());
@@ -75,10 +75,17 @@ public class AuthenticationService {
             user.setNewUser(true);
             user.setAddress(request.getAddress());
 //            user.setDocuments(request.getDocuments());
-
+            System.out.println("saving payload to db");
             user = repository.save(user);
 
             String jwt = jwtService.generateToken(user);
+
+            String code = generateVerificationCode();
+            String createdCode =  createVerificationCode(code, user.getEmail(), user.getId(), "User Registration", com.bcn.bmc.enums.VerificationStatus.PENDING);
+
+            if(!createdCode.isEmpty()){
+                emailService.sendVerificationEmailToNewlyCreatedUser(user.getEmail(), user.getFirstName(), user.getLastName(), "Registration Successful",code, user.getUsername(),  request.getPassword());
+            }
 
             return new AuthenticationResponse(user.getId(),jwt, "User registration was successful");
         } catch(DataIntegrityViolationException e) {
