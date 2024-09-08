@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# application props
+../blood-bank-management-backend/src/main/resources/

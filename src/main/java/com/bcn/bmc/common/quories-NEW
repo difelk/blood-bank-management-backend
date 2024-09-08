@@ -1,0 +1,153 @@
+create database bcnetwork;
+
+use bcnetwork;
+
+ CREATE TABLE blood_types (
+    blood_type VARCHAR(3) PRIMARY KEY
+);
+
+
+INSERT INTO blood_types (blood_type) VALUES
+    ('A+'),
+    ('A-'),
+    ('B+'),
+    ('B-'),
+    ('AB+'),
+    ('AB-'),
+    ('O+'),
+    ('O-');
+    
+CREATE TABLE hospitals (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    hospital_name VARCHAR(255) NOT NULL,
+    contact_no VARCHAR(20),
+    contact_no2 VARCHAR(20),
+    sector VARCHAR(100)
+);
+
+INSERT INTO hospitals (hospital_name, contact_no, contact_no2,sector)
+VALUES ('Blood Bank', 0777777777, 0777777292, 'Government');
+
+
+CREATE TABLE organizations (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    organization_id INT,
+    organization_name VARCHAR(255),
+    date DATE,
+    FOREIGN KEY (organization_id) REFERENCES hospitals(id)
+);
+
+INSERT INTO organizations (organization_id, organization_name, date)
+VALUES (1, 'Blood Bank', CURDATE());
+
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    blood_type VARCHAR(3) NOT NULL,
+    contact_number VARCHAR(20) NOT NULL,
+    contact_number_2 VARCHAR(20),
+    nic VARCHAR(20),
+    dob DATE,
+    user_role ENUM('ADMIN', 'USER', 'SUPER_ADMIN') NOT NULL,
+    address_id BIGINT,
+    status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+    organization_id INT,
+    is_new_user BOOLEAN NOT NULL DEFAULT TRUE,
+    FOREIGN KEY (blood_type) REFERENCES blood_types(blood_type),
+    FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+);
+
+
+
+
+CREATE TABLE user_documents (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    file_name VARCHAR(255) NOT NULL,
+    file_type VARCHAR(50) NOT NULL,
+    file_size BIGINT NOT NULL,
+    data LONGBLOB NOT NULL,
+    user_id BIGINT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+ CREATE TABLE addresses (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    street_number VARCHAR(50),
+    street_name VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(100),
+    zip_code VARCHAR(20),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE user_activity (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    activity_type VARCHAR(255) NOT NULL,
+    activity_details VARCHAR(1000),
+    ip_address VARCHAR(255),
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+ALTER TABLE user_activity 
+ADD COLUMN activity_status ENUM('SUCCESS', 'FAILURE') NOT NULL DEFAULT 'SUCCESS';
+
+
+
+
+
+CREATE TABLE hospital_addresses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    hospital_id INT,
+    no VARCHAR(10),
+    street VARCHAR(255),
+    city VARCHAR(100),
+    FOREIGN KEY (hospital_id) REFERENCES hospitals(id)
+);
+
+
+CREATE TABLE hospital_documents (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    file_name VARCHAR(255) NOT NULL,
+    file_type VARCHAR(50) NOT NULL,
+    file_size BIGINT NOT NULL,
+    data LONGBLOB NOT NULL,
+    hospital_id INT,
+    FOREIGN KEY (hospital_id) REFERENCES hospitals(id)
+);
+
+CREATE TABLE verification_codes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    code VARCHAR(255) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL,
+    purpose VARCHAR(255),
+    status ENUM('PENDING', 'USED', 'EXPIRED') NOT NULL DEFAULT 'PENDING',
+    CONSTRAINT fkvc_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+ALTER TABLE users ADD COLUMN date DATETIME DEFAULT CURRENT_TIMESTAMP;
+
+select * from hospitals;
+select * from hospital_addresses;
+select * from hospital_documents;
+
+select * from users;
+
+select * from verification_codes;
+
+select * from organizations;
+
+
+
+
+
+
