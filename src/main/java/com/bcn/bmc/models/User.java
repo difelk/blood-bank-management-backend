@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -56,8 +57,20 @@ public class User {
     @Column(name = "nic")
     private String nic;
 
+    @Column(name = "date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime date;
+
     public LocalDate getDob() {
         return dob;
+    }
+
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime date) {
+        this.date = date;
     }
 
     public void setDob(LocalDate dob) {
@@ -72,17 +85,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "user_role", nullable = false)
     private UserRole userRole;
-
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<UserDocument> documents;
-//
-//    public List<UserDocument> getDocuments() {
-//        return documents;
-//    }
-//
-//    public void setDocuments(List<UserDocument> documents) {
-//        this.documents = documents;
-//    }
 
     public ActiveStatus getStatus() {
         return status;

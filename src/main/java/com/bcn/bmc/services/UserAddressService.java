@@ -3,6 +3,7 @@ package com.bcn.bmc.services;
 import com.bcn.bmc.models.Address;
 import com.bcn.bmc.models.User;
 import com.bcn.bmc.models.UserAddressResponse;
+import com.bcn.bmc.models.UserAuthorize;
 import com.bcn.bmc.repositories.UserAddressRepository;
 import com.bcn.bmc.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
