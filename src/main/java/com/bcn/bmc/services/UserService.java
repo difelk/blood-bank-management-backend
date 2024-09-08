@@ -155,6 +155,7 @@ public class UserService {
 
     public List<User> getAllUsers(UserAuthorize admin) {
         try {
+            System.out.println("User org: "+ admin.getOrganization());
             if(admin.getOrganization() == 1){
                 return userRepository.findAllActiveUsers();
             }else{

@@ -28,6 +28,7 @@ public class AuthenticationController {
     public ResponseEntity<AuthenticationResponse> register(
             @RequestBody User request
     ) {
+        System.out.println("Control REG: "+ request.getEmail());
         return ResponseEntity.ok(authService.register(request));
     }
 

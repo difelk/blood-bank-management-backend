@@ -61,6 +61,7 @@ public class AuthenticationService {
                 return new AuthenticationResponse(-1,null, "User already exists");
             }
             User user = new User();
+            System.out.println("user Reg organnization: " + user.getOrganization());
             user.setFirstName(request.getFirstName());
             user.setLastName(request.getLastName());
             user.setUsername(request.getUsername());
@@ -81,6 +82,7 @@ public class AuthenticationService {
             String jwt = jwtService.generateToken(user);
 
             String code = generateVerificationCode();
+            System.out.println("veri code: "+code);
             String createdCode =  createVerificationCode(code, user.getEmail(), user.getId(), "User Registration", com.bcn.bmc.enums.VerificationStatus.PENDING);
 
             if(!createdCode.isEmpty()){
@@ -173,6 +175,7 @@ public class AuthenticationService {
         LocalDateTime expireDateTime = currentDateTime.plusHours(24);
         VerificationCode newVerification = new VerificationCode(userId, email, code, currentDateTime, expireDateTime, purpose, status);
         VerificationCode savedVerificationCode = verificationCodeRepository.save(newVerification);
+        System.out.println("savedVerificationCode EMAIL: "+ savedVerificationCode.getEmail());
         return savedVerificationCode.getCode();
     }
 
