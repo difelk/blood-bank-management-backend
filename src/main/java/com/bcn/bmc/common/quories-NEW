@@ -136,6 +136,12 @@ CREATE TABLE verification_codes (
 
 ALTER TABLE users ADD COLUMN date DATETIME DEFAULT CURRENT_TIMESTAMP;
 
+------- HOSPITAL TABLE - STATUS ADDED -------
+
+ALTER TABLE hospitals
+ADD COLUMN status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE';
+
+
 select * from hospitals;
 select * from hospital_addresses;
 select * from hospital_documents;

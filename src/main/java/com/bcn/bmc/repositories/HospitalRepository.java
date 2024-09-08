@@ -1,5 +1,6 @@
 package com.bcn.bmc.repositories;
 
+import com.bcn.bmc.enums.ActiveStatus;
 import com.bcn.bmc.models.Hospital;
 import com.bcn.bmc.models.HospitalDocument;
 import com.bcn.bmc.models.HospitalJoinedDetails;
@@ -17,7 +18,9 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
     Optional<Hospital> findByHospitalName(String hospitalName);
     List<Hospital> findBySector(String sector);
 
-    @Query("select h from Hospital h where  h.id = :organization")
+    List<Hospital> findAllByStatus(ActiveStatus status);
+
+    @Query("select h from Hospital h where  h.id = :organization AND h.status <> 'INACTIVE'")
     List<Hospital> findAllByOrganizationId(@Param("organization") int organization);
 
 //    @Query("SELECT new com.bcn.bmc.models.HospitalJoinedDetails(" +

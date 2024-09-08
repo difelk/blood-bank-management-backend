@@ -1,5 +1,6 @@
 package com.bcn.bmc.services;
 
+import com.bcn.bmc.enums.ActiveStatus;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.HospitalRepository;
 import com.bcn.bmc.repositories.OrganizationRepository;
@@ -42,8 +43,8 @@ public class HospitalService {
 
     public List<Hospital> getAllHospitals(UserAuthorize admin) {
         try {
-            if(admin.getOrganization() == 1){
-                return hospitalRepository.findAll();
+            if (admin.getOrganization() == 1) {
+                return hospitalRepository.findAllByStatus(ActiveStatus.ACTIVE);
             }else{
                 return hospitalRepository.findAllByOrganizationId(admin.getOrganization());
             }
@@ -98,14 +99,16 @@ public class HospitalService {
     @Transactional
     public HospitalResponse deleteHospitalById(long id) {
         try {
-            if (hospitalRepository.existsById(id)) {
-                hospitalRepository.deleteById(id);
-                return new HospitalResponse((int) id, "Hospital deleted successfully");
+            Hospital hospital = hospitalRepository.findById(id).orElse(null);
+            if (hospital != null) {
+                hospital.setStatus(ActiveStatus.INACTIVE);
+                hospitalRepository.save(hospital);
+                return new HospitalResponse(Math.toIntExact(id), "Hospital marked as inactive successfully");
             } else {
                 return new HospitalResponse(-1, "Hospital not found");
             }
         } catch (Exception e) {
-            return new HospitalResponse(-1, "Failed to delete hospital: " + e.getMessage());
+            return new HospitalResponse(-1, "Failed to mark hospital as inactive: " + e.getMessage());
         }
     }
 
