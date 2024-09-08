@@ -1,5 +1,6 @@
 package com.bcn.bmc.models;
 
+import com.bcn.bmc.enums.ActiveStatus;
 import jakarta.persistence.*;
 
 @Entity
@@ -21,6 +22,18 @@ public class Hospital {
 
     @Column(name = "sector", nullable = false)
     private String sector;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ActiveStatus status = ActiveStatus.ACTIVE;
+
+    public ActiveStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ActiveStatus status) {
+        this.status = status;
+    }
 
     public Long getId() {
         return id;
