@@ -1,5 +1,6 @@
 package com.bcn.bmc.controllers;
 
+import com.bcn.bmc.helper.TokenData;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.services.HospitalAddressService;
 import com.bcn.bmc.services.HospitalDocumentService;
@@ -28,7 +29,8 @@ public class HospitalController {
     @Autowired
     private HospitalDocumentService hospitalDocumentService;
 
-
+    @Autowired
+    private TokenData tokenHelper;
     @PostMapping("/")
     public ResponseEntity<Hospital> createHospital(@RequestBody Hospital hospital) {
         try {
@@ -40,7 +42,8 @@ public class HospitalController {
     }
 
     @GetMapping("/")
-    public List<Hospital> getAllHospitals() {
+    public List<Hospital> getAllHospitals(@RequestHeader("Authorization") String tokenHeader) {
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
         return hospitalService.getAllHospitals();
     }
 

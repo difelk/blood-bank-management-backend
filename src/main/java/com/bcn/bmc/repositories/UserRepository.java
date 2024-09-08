@@ -18,23 +18,27 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("select u from User u where u.status <> 'INACTIVE'")
     List<User> findAllActiveUsers();
+
+    @Query("select u from User u where  u.organization = :organization AND u.status <> 'INACTIVE'")
+    List<User> findAllActiveUsersByOrganization(@Param("organization") int organization);
     @Query("select u from User u where u.nic =?1")
     Optional<User> findUserByNic(@Param("nic") String nic);
-
+    @Query("select u from User u where u.organization = :organization AND u.nic = :nic")
+    Optional<User> findUserByNicAndLoggedUserOrganization(@Param("organization") int organization, @Param("nic") String nic);
     @Query("select u from User u where u.email =?1")
     Optional<User> findUserByEmail(@Param("email") String email);
-
-    @Query("select u from User u where u.id =?1")
+    @Query("select u from User u where u.organization = :organization AND  u.email = :email")
+    Optional<User> findUserByEmailAndLoggedUserOrganization(@Param("organization") int organization, @Param("email") String email);
+    @Query("select u from User u where u.id = :id")
     Optional<User> findUserById(@Param("id") long id);
-
-    @Query("select u from User u where u.username =?1")
+    @Query("select u from User u where u.organization = :organization AND u.id = :id")
+    Optional<User> findUserByIdAndLoggedUserOrganization(@Param("organization") int organization,@Param("id") long id);
+    @Query("select u from User u where u.username = :username")
     Optional<User> findUserByUsername(@Param("username") String username);
-
-
+    @Query("select u from User u where u.organization = :organization AND  u.username = :username")
+    Optional<User> findUserByUsernameAndLoggedUserOrganization(@Param("organization") int organization, @Param("username") String username);
     @Query("SELECT u FROM User u WHERE u.username = :username AND u.password = :password AND u.status <> 'INACTIVE'")
     User findIsUserNew(@Param("username") String username, @Param("password") String password);
-
-
 
     @Modifying
     @Transactional
@@ -50,11 +54,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("delete from User d where d.id = :id")
     void deleteUserById(@Param("id") long id);
 
-
     @Modifying
     @Transactional
     @Query("update User u set u.password = :password, u.isNewUser = :userStatus where u.nic = :nic")
     void resetPassword(@Param("nic") String nic, @Param("password") String password, @Param("password") int userStatus);
+
+    @Modifying
+    @Transactional
+    @Query("update User u set u.password = :password, u.isNewUser = :userStatus where u.organization = :organization AND  u.nic = :nic")
+    void resetPasswordByLoggedUserOrganization(@Param("organization") int organization, @Param("nic") String nic, @Param("password") String password, @Param("password") int userStatus);
 
     @Modifying
     @Transactional

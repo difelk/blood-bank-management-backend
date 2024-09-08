@@ -1,5 +1,6 @@
 package com.bcn.bmc.controllers;
 
+import com.bcn.bmc.helper.TokenData;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.services.UserAddressService;
 import com.bcn.bmc.services.UserDocumentService;
@@ -28,76 +29,89 @@ public class UserController {
     @Autowired
     private UserDocumentService userDocumentService;
 
+    @Autowired
+    private TokenData tokenHelper;
     @GetMapping("/")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public List<User> getAllUsers(){
-        return userService.getAllUsers();
+    public List<User> getAllUsers(@RequestHeader("Authorization") String tokenHeader){
+        UserAuthorize userAuthorize =   tokenHelper.parseToken(tokenHeader);
+        return userService.getAllUsers(userAuthorize);
     }
 
 
     @GetMapping("/nic/{nic}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public User getAllUsersByNic(@PathVariable String nic){
-        return userService.findUserByNic(nic);
+    public User getAllUsersByNic(@RequestHeader("Authorization") String tokenHeader, @PathVariable String nic){
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+        return userService.findUserByNic(nic, userAuthorize);
     }
 
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public User getUserById(@PathVariable Long id){
-        return userService.findUserById(id);
+    public User getUserById(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long id){
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+        return userService.findUserById(id, userAuthorize);
     }
 
     @GetMapping("/username/{username}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public User getUsersByUserName(@PathVariable String username){
-        return userService.getUserByUsername(username);
+    public User getUsersByUserName(@RequestHeader("Authorization") String tokenHeader, @PathVariable String username){
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+        return userService.getUserByUsername(username, userAuthorize);
     }
 
 
     @GetMapping("/email/{email}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public User getUsersByEmail(@PathVariable String email){
-        return userService.getUsersByEmail(email);
+    public User getUsersByEmail(@RequestHeader("Authorization") String tokenHeader, @PathVariable String email){
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+        return userService.getUsersByEmail(email, userAuthorize);
     }
 
 
     @PutMapping("/")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<UserResponse> updateUser(@RequestBody User data){
-        return  ResponseEntity.ok(userService.updateUser(data));
+    public ResponseEntity<UserResponse> updateUser(@RequestHeader("Authorization") String tokenHeader, @RequestBody User data){
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+        return  ResponseEntity.ok(userService.updateUser(data, userAuthorize));
     }
 
 
     @PutMapping("/password")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<UserResponse> updatePassword(@RequestBody Password request){
-        return ResponseEntity.ok(userService.updatePassword(request));
+    public ResponseEntity<UserResponse> updatePassword(@RequestHeader("Authorization") String tokenHeader, @RequestBody Password request){
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+        return ResponseEntity.ok(userService.updatePassword(request, userAuthorize));
     }
 
     @DeleteMapping("/{id}")
 //    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<UserResponse> deleteUserByUserId(@PathVariable long id) {
-        return ResponseEntity.ok(userService.deleteUserByUserId(id));
+    public ResponseEntity<UserResponse> deleteUserByUserId(@RequestHeader("Authorization") String tokenHeader, @PathVariable long id) {
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+        return ResponseEntity.ok(userService.deleteUserByUserId(id, userAuthorize));
     }
 
 
 //    address
 
     @PostMapping(path = "/address")
-    public UserAddressResponse createAddress(@RequestBody Address address){
+    public UserAddressResponse createAddress(@RequestHeader("Authorization") String tokenHeader, @RequestBody Address address){
         System.out.println("called post add address");
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
         return userAddressService.createAddress(address);
     }
 
     @PutMapping("/address")
 // @PreAuthorize("hasAuthority('ROLE_USER')")
-    public UserAddressResponse updateAddress(@RequestBody Address address) {
+    public UserAddressResponse updateAddress(@RequestHeader("Authorization") String tokenHeader, @RequestBody Address address) {
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
         return userAddressService.updateAddress(address);
     }
 
     @GetMapping("/address/{userid}")
-    public Address getAddressByUser(@PathVariable Long userid){
+    public Address getAddressByUser(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long userid){
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
         return userAddressService.getAddressByUserId(userid);
     }
 

@@ -43,6 +43,12 @@ public class HospitalService {
     public List<Hospital> getAllHospitals() {
         try {
 
+//            if(admin.getOrganization() == 1){
+//                return hospitalRepository.findAll();
+//            }else{
+//                return hospitalRepository.findAllByOrganizationId(admin.getOrganization());
+//            }
+
             return hospitalRepository.findAll();
         } catch (Exception e) {
             System.out.println("Error fetching all hospitals: " + e.getMessage());

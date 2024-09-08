@@ -3,6 +3,7 @@ package com.bcn.bmc.repositories;
 import com.bcn.bmc.models.Hospital;
 import com.bcn.bmc.models.HospitalDocument;
 import com.bcn.bmc.models.HospitalJoinedDetails;
+import com.bcn.bmc.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,6 +16,8 @@ import java.util.Optional;
 public interface HospitalRepository extends JpaRepository<Hospital, Long> {
     Optional<Hospital> findByHospitalName(String hospitalName);
     List<Hospital> findBySector(String sector);
+
+
 
 //    @Query("SELECT new com.bcn.bmc.models.HospitalJoinedDetails(" +
 //            "h.id, h.hospitalName, h.contactNo1, h.contactNo2, h.sector, " +

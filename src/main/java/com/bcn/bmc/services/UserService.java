@@ -1,10 +1,8 @@
 package com.bcn.bmc.services;
 
 import com.bcn.bmc.enums.ActiveStatus;
-import com.bcn.bmc.models.Address;
-import com.bcn.bmc.models.Password;
-import com.bcn.bmc.models.User;
-import com.bcn.bmc.models.UserResponse;
+import com.bcn.bmc.helper.TokenData;
+import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.UserAddressRepository;
 import com.bcn.bmc.repositories.UserRepository;
 import jakarta.transaction.Transactional;
@@ -27,10 +25,15 @@ public class UserService {
 
 
 
-    public User findUserByNic(String nic){
+    public User findUserByNic(String nic, UserAuthorize admin){
         try {
-            Optional<User> user = userRepository.findUserByNic(nic);
-            System.out.println("user - " + user);
+            Optional<User> user;
+            if((admin.getOrganization() == 1)){
+                user = userRepository.findUserByNic(nic);
+            }else{
+                user = userRepository.findUserByNicAndLoggedUserOrganization(admin.getOrganization(), nic);
+                System.out.println("user - " + user);
+            }
             return user.orElse(null);
         } catch (Exception e) {
             System.out.println("Error finding user by NIC: " + e.getMessage());
@@ -40,14 +43,16 @@ public class UserService {
     }
 
 
-    public User findUserById(long id){
+    public User findUserById(long id, UserAuthorize admin){
         try {
-            Optional<User> user = userRepository.findUserById(id);
-            System.out.println("user - " + user);
-            if(user.isPresent()) {
-                return user.get();
+            Optional<User> user;
+            if((admin.getOrganization() == 1)){
+                user  = userRepository.findUserById(id);
+            }else{
+                user  = userRepository.findUserByIdAndLoggedUserOrganization(admin.getOrganization(),id);
             }
-            return null;
+            System.out.println("user - " + user);
+            return user.orElse(null);
         } catch (Exception e) {
             System.out.println("Error finding user by Id: " + e.getMessage());
             return null;
@@ -55,36 +60,42 @@ public class UserService {
 
     }
 
-    public User getUserByUsername(String username) {
+    public User getUserByUsername(String username, UserAuthorize admin) {
         try {
-            Optional<User> user = userRepository.findUserByUsername(username);
-            System.out.println("user - " + user);
-            if(user.isPresent()) {
-                return user.get();
+            Optional<User> user;
+
+            if((admin.getOrganization() == 1)){
+                user = userRepository.findUserByUsername(username);
+            }else{
+                user  = userRepository.findUserByUsernameAndLoggedUserOrganization(admin.getOrganization(),username);
             }
-            return null;
+            System.out.println("user - " + user);
+            return user.orElse(null);
         } catch (Exception e) {
             System.out.println("Error finding user by NIC: " + e.getMessage());
             return null;
         }
     }
 
-    public User getUsersByEmail(String email){
+    public User getUsersByEmail(String email, UserAuthorize admin){
         try {
-            Optional<User> user = userRepository.findUserByEmail(email);
-            if(user.isPresent()) {
-                return user.get();
+            Optional<User> user;
+
+            if((admin.getOrganization() == 1)){
+                user = userRepository.findUserByEmail(email);
+            }else{
+                user  = userRepository.findUserByEmailAndLoggedUserOrganization(admin.getOrganization(),email);
             }
-            return null;
+            return user.orElse(null);
         } catch (Exception e) {
             System.out.println("Error finding user by Email: " + e.getMessage());
             return null;
         }
     }
 
-    public UserResponse updateUser(User data){
+    public UserResponse updateUser(User data, UserAuthorize admin){
         UserResponse userResponse = new UserResponse();
-        User existingUser = findUserByNic(data.getNic());
+        User existingUser = findUserByNic(data.getNic(), admin);
         try {
             if (existingUser != null) {
                 existingUser.setFirstName(data.getFirstName());
@@ -117,15 +128,18 @@ public class UserService {
     }
 
 
-    public UserResponse updatePassword(com.bcn.bmc.models.Password request){
+    public UserResponse updatePassword(com.bcn.bmc.models.Password request, UserAuthorize admin){
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        System.out.println("inside of service method");
         UserResponse userResponse = new UserResponse();
-        System.out.println("request.password = " + request.getNewPassword());
         Password password = new Password();
         password.setNic(request.getNic());
         password.setNewPassword(passwordEncoder.encode(request.getNewPassword()));
         try{
+            if((admin.getOrganization() == 1)){
+                userRepository.resetPassword(password.getNic(), password.getNewPassword(), 0);
+            }else{
+                userRepository.resetPasswordByLoggedUserOrganization(admin.getOrganization(), password.getNic(), password.getNewPassword(), 0);
+            }
             userRepository.resetPassword(password.getNic(), password.getNewPassword(), 0);
             userResponse.setMessage("password reset Successful");
             userResponse.setStatus(200);
@@ -139,51 +153,55 @@ public class UserService {
 
     }
 
-    public List<User> getAllUsers() {
+    public List<User> getAllUsers(UserAuthorize admin) {
         try {
-            return userRepository.findAllActiveUsers();
+            if(admin.getOrganization() == 1){
+                return userRepository.findAllActiveUsers();
+            }else{
+                return userRepository.findAllActiveUsersByOrganization(admin.getOrganization());
+            }
+
         } catch (Exception e) {
             System.out.println("Failed to fetch all users: " + e.getMessage());
             return null;
         }
     }
 
-    @Transactional
-    public UserResponse deleteUserByNic(String nic) {
-        UserResponse userResponse = new UserResponse();
-        User user = findUserByNic(nic);
-        if (user != null) {
-            try {
-                userRepository.deleteUserByNic(nic);
-                User deletedUser = findUserByNic(nic);
-                if (deletedUser == null) {
-                    userResponse.setMessage("User delete successful");
-                    userResponse.setStatus(200);
-                } else {
-                    userResponse.setMessage("Something went wrong");
-                    userResponse.setStatus(500);
-                }
-            } catch (Exception e) {
-                userResponse.setMessage("Failed to delete user: " + e.getMessage());
-                userResponse.setStatus(500);
-            }
-        } else {
-            userResponse.setMessage("User does not exist");
-            userResponse.setStatus(404);
-        }
-        return userResponse;
-    }
+//    @Transactional
+//    public UserResponse deleteUserByNic(String nic) {
+//        UserResponse userResponse = new UserResponse();
+//        User user = findUserByNic(nic);
+//        if (user != null) {
+//            try {
+//                userRepository.deleteUserByNic(nic);
+//                User deletedUser = findUserByNic(nic);
+//                if (deletedUser == null) {
+//                    userResponse.setMessage("User delete successful");
+//                    userResponse.setStatus(200);
+//                } else {
+//                    userResponse.setMessage("Something went wrong");
+//                    userResponse.setStatus(500);
+//                }
+//            } catch (Exception e) {
+//                userResponse.setMessage("Failed to delete user: " + e.getMessage());
+//                userResponse.setStatus(500);
+//            }
+//        } else {
+//            userResponse.setMessage("User does not exist");
+//            userResponse.setStatus(404);
+//        }
+//        return userResponse;
+//    }
 
 
     @Transactional
-    public UserResponse deleteUserByUserId(long id) {
+    public UserResponse deleteUserByUserId(long id, UserAuthorize admin) {
         UserResponse userResponse = new UserResponse();
-        User user = findUserById(id);
+        User user = findUserById(id, admin);
         if (user != null) {
             try {
                 user.setStatus(ActiveStatus.INACTIVE);
                 userRepository.save(user);
-
                 userResponse.setMessage("User has been marked as deleted");
                 userResponse.setStatus(200);
             } catch (Exception e) {

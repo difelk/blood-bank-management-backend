@@ -42,6 +42,19 @@ public class JwtService {
         return resolver.apply(claims);
     }
 
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("id", Long.class));
+    }
+
+    public Integer extractOrganizationId(String token) {
+        return extractClaim(token, claims -> claims.get("organizationId", Integer.class));
+    }
+
+    public String extractUserRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
+    }
+
+
     private Claims extractAllClaims(String token) {
         return Jwts
                 .parser()
@@ -61,6 +74,7 @@ public class JwtService {
                 .claim("lastName", user.getLastName())
                 .claim("role", user.getUserRole())
                 .claim("id", user.getId())
+                .claim("organizationId", user.getOrganization())
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .signWith(getSigninKey())
