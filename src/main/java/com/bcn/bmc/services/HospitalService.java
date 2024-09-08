@@ -40,16 +40,14 @@ public class HospitalService {
         }
     }
 
-    public List<Hospital> getAllHospitals() {
+    public List<Hospital> getAllHospitals(UserAuthorize admin) {
         try {
-
-//            if(admin.getOrganization() == 1){
-//                return hospitalRepository.findAll();
-//            }else{
-//                return hospitalRepository.findAllByOrganizationId(admin.getOrganization());
-//            }
-
-            return hospitalRepository.findAll();
+            if(admin.getOrganization() == 1){
+                return hospitalRepository.findAll();
+            }else{
+                return hospitalRepository.findAllByOrganizationId(admin.getOrganization());
+            }
+//            return hospitalRepository.findAll();
         } catch (Exception e) {
             System.out.println("Error fetching all hospitals: " + e.getMessage());
             return null;
@@ -111,68 +109,56 @@ public class HospitalService {
         }
     }
 
-    public List<HospitalJoinedDetails> getAllHospitalJoinedDetails() {
-//        List<HospitalJoinedDetails> hospitalDetails = hospitalRepository.findHospitalsWithAddresses();
+//    public List<HospitalJoinedDetails> getAllHospitalJoinedDetails() {
+//        List<HospitalJoinedDetails> hospitalJoinedDetails = new ArrayList<>();
 //
-//        for (HospitalJoinedDetails detail : hospitalDetails) {
-//            List<HospitalDocument> documents = hospitalRepository.findDocumentsByHospitalId(detail.getId());
-//            detail.setHospitalDocuments(documents);
+//        HospitalAddressService hospitalAddressService = new HospitalAddressService();
+//        HospitalDocumentService hospitalDocumentService = new HospitalDocumentService();
+//
+//        List<Hospital> hospitalBasicData = getAllHospitals();
+//        List<HospitalAddress> hospitalAddressData = hospitalAddressService.getAllAddresses();
+//        List<HospitalDocument> hospitalDocumentsData = hospitalDocumentService.getAllDocuments();
+//
+//        System.out.println("hospitalAddressData - " + hospitalAddressData.size());
+//        System.out.println("hospitalDocumentsData - " + hospitalDocumentsData.size());
+//
+//        for(Hospital hospital : hospitalBasicData){
+//
+//            for(HospitalAddress address : hospitalAddressData){
+//
+//                if(hospital.getId() == address.getHospitalId()){
+//
+//                for(HospitalDocument document : hospitalDocumentsData){
+//
+//                    HospitalJoinedDetails hospitalJoinedDetail = new HospitalJoinedDetails();
+//
+//                    if(hospital.getId() == document.getHospital().getId()){
+//                        hospitalJoinedDetail.setId(hospital.getId());
+//                        hospitalJoinedDetail.setHospitalName(hospital.getHospitalName());
+//                        hospitalJoinedDetail.setSector(hospital.getSector());
+//                        hospitalJoinedDetail.setContactNo1(hospital.getContactNo1());
+//                        hospitalJoinedDetail.setContactNo2(hospital.getContactNo2());
+//                        hospitalJoinedDetail.setStreetNumber(address.getStreetNumber());
+//                        hospitalJoinedDetail.setStreetName(address.getStreetName());
+//                        hospitalJoinedDetail.setCity(address.getCity());
+//
+//                        List<HospitalDocument> docs = new ArrayList<>();
+//
+//                        for(HospitalDocument document2 : hospitalDocumentsData){
+//                            if(hospital.getId() == document2.getHospital().getId()){
+//                                docs.add(new HospitalDocument(document2.getId(),document2.getFileName(),document2.getFileType(),document2.getFileSize(),document2.getData(),document2.getHospital()));
+//                            }
+//                        }
+//                        hospitalJoinedDetail.setHospitalDocuments(docs);
+//                        hospitalJoinedDetails.add(hospitalJoinedDetail);
+//                    }
+//
+//                }
+//                }
+//            }
 //        }
-//
-//        return hospitalDetails;
-
-//        HospitalDocument hospitalDocument = new HospitalDocument();
-//        HospitalAddress hospitalAddress = new HospitalAddress();
-        List<HospitalJoinedDetails> hospitalJoinedDetails = new ArrayList<>();
-
-        HospitalAddressService hospitalAddressService = new HospitalAddressService();
-        HospitalDocumentService hospitalDocumentService = new HospitalDocumentService();
-
-        List<Hospital> hospitalBasicData = getAllHospitals();
-        List<HospitalAddress> hospitalAddressData = hospitalAddressService.getAllAddresses();
-        List<HospitalDocument> hospitalDocumentsData = hospitalDocumentService.getAllDocuments();
-
-        System.out.println("hospitalAddressData - " + hospitalAddressData.size());
-        System.out.println("hospitalDocumentsData - " + hospitalDocumentsData.size());
-
-        for(Hospital hospital : hospitalBasicData){
-
-            for(HospitalAddress address : hospitalAddressData){
-
-                if(hospital.getId() == address.getHospitalId()){
-
-                for(HospitalDocument document : hospitalDocumentsData){
-
-                    HospitalJoinedDetails hospitalJoinedDetail = new HospitalJoinedDetails();
-
-                    if(hospital.getId() == document.getHospital().getId()){
-                        hospitalJoinedDetail.setId(hospital.getId());
-                        hospitalJoinedDetail.setHospitalName(hospital.getHospitalName());
-                        hospitalJoinedDetail.setSector(hospital.getSector());
-                        hospitalJoinedDetail.setContactNo1(hospital.getContactNo1());
-                        hospitalJoinedDetail.setContactNo2(hospital.getContactNo2());
-                        hospitalJoinedDetail.setStreetNumber(address.getStreetNumber());
-                        hospitalJoinedDetail.setStreetName(address.getStreetName());
-                        hospitalJoinedDetail.setCity(address.getCity());
-
-                        List<HospitalDocument> docs = new ArrayList<>();
-
-                        for(HospitalDocument document2 : hospitalDocumentsData){
-                            if(hospital.getId() == document2.getHospital().getId()){
-                                docs.add(new HospitalDocument(document2.getId(),document2.getFileName(),document2.getFileType(),document2.getFileSize(),document2.getData(),document2.getHospital()));
-                            }
-                        }
-                        hospitalJoinedDetail.setHospitalDocuments(docs);
-                        hospitalJoinedDetails.add(hospitalJoinedDetail);
-                    }
-
-                }
-                }
-            }
-        }
-        return hospitalJoinedDetails;
-
-    }
+//        return hospitalJoinedDetails;
+//    }
 
 
 }

@@ -17,7 +17,8 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
     Optional<Hospital> findByHospitalName(String hospitalName);
     List<Hospital> findBySector(String sector);
 
-
+    @Query("select h from Hospital h where  h.id = :organization")
+    List<Hospital> findAllByOrganizationId(@Param("organization") int organization);
 
 //    @Query("SELECT new com.bcn.bmc.models.HospitalJoinedDetails(" +
 //            "h.id, h.hospitalName, h.contactNo1, h.contactNo2, h.sector, " +

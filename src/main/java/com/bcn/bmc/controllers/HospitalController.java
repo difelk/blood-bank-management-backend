@@ -44,7 +44,7 @@ public class HospitalController {
     @GetMapping("/")
     public List<Hospital> getAllHospitals(@RequestHeader("Authorization") String tokenHeader) {
         UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
-        return hospitalService.getAllHospitals();
+        return hospitalService.getAllHospitals(userAuthorize);
     }
 
     @GetMapping("/{id}")
@@ -125,8 +125,8 @@ public class HospitalController {
         return hospitalDocumentService.deleteDocumentById(documentId);
     }
 
-    @GetMapping("/all")
-    public List<HospitalJoinedDetails> getAllHospitalJoinedDetails(){
-        return hospitalService.getAllHospitalJoinedDetails();
-    }
+//    @GetMapping("/all")
+//    public List<HospitalJoinedDetails> getAllHospitalJoinedDetails(){
+//        return hospitalService.getAllHospitalJoinedDetails();
+//    }
 }
