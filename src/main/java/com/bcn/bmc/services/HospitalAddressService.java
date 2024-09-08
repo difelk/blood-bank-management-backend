@@ -1,8 +1,6 @@
 package com.bcn.bmc.services;
 
-import com.bcn.bmc.models.Hospital;
-import com.bcn.bmc.models.HospitalAddress;
-import com.bcn.bmc.models.HospitalAddressResponse;
+import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.HospitalAddressRepository;
 import com.bcn.bmc.repositories.UserRepository;
 import jakarta.transaction.Transactional;
@@ -12,11 +10,17 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class HospitalAddressService {
 
     @Autowired
     private HospitalAddressRepository hospitalAddressRepository;
+
+
+    private static final Logger logger = LoggerFactory.getLogger(HospitalAddressService.class);
 
 //    public HospitalAddressService(HospitalAddressRepository hospitalAddressRepository) {
 //        this.hospitalAddressRepository = hospitalAddressRepository;
@@ -31,22 +35,42 @@ public class HospitalAddressService {
         }
     }
 
+//    @Transactional
+//    public HospitalAddressResponse updateAddress(HospitalAddress newAddress) {
+//        try {
+//            Optional<HospitalAddress> addressOptional = hospitalAddressRepository.findById(newAddress.getId());
+//
+//            if (addressOptional.isPresent()) {
+//                HospitalAddress existingAddress = addressOptional.get();
+//                existingAddress.setStreetNumber(newAddress.getStreetNumber());
+//                existingAddress.setStreetName(newAddress.getStreetName());
+//                existingAddress.setCity(newAddress.getCity());
+//                HospitalAddress savedAddress = hospitalAddressRepository.save(existingAddress);
+//
+//                return new HospitalAddressResponse(savedAddress.getId(), "Address updated successfully");
+//            } else {
+//                return createAddress(newAddress);
+//            }
+//        } catch (Exception e) {
+//            logger.error("Failed to update address", e);
+//            return new HospitalAddressResponse(-1, "Failed to update address: " + e.getMessage());
+//        }
+//    }
+
     @Transactional
     public HospitalAddressResponse updateAddress(HospitalAddress newAddress) {
-        try {
-            Optional<HospitalAddress> addressOptional = hospitalAddressRepository.findById(newAddress.getId());
-            if (addressOptional.isPresent()) {
-                HospitalAddress existingAddress = addressOptional.get();
-                existingAddress.setStreetNumber(newAddress.getStreetNumber());
-                existingAddress.setStreetName(newAddress.getStreetName());
-                existingAddress.setCity(newAddress.getCity());
-                HospitalAddress savedAddress = hospitalAddressRepository.save(existingAddress);
-                return new HospitalAddressResponse(savedAddress.getId(), "Address updated successfully");
-            } else {
-                return createAddress(newAddress);
-            }
-        } catch (Exception e) {
-            return new HospitalAddressResponse(-1, "Failed to update address: " + e.getMessage());
+        System.out.println("NEW ADDRESS ID: "+newAddress.getId());
+        Optional<HospitalAddress> addressOptional = hospitalAddressRepository.findById(newAddress.getId());
+
+        if (addressOptional.isPresent()) {
+            HospitalAddress existingAddress = addressOptional.get();
+            existingAddress.setStreetNumber(newAddress.getStreetNumber());
+            existingAddress.setStreetName(newAddress.getStreetName());
+            existingAddress.setCity(newAddress.getCity());
+            HospitalAddress savedAddress = hospitalAddressRepository.save(existingAddress);
+            return new HospitalAddressResponse(savedAddress.getId(), "Address updated successfully");
+        } else {
+            return createAddress(newAddress);
         }
     }
 
