@@ -86,7 +86,7 @@ public class HospitalController {
 
     @PutMapping("/address")
     public ResponseEntity<HospitalAddressResponse> updateAddress(@RequestBody HospitalAddress address) {
-        System.out.println("CONTROLLER address: "+ address.getId());
+        System.out.println("CONTROLLER address: "+ address.getHospitalId());
         return ResponseEntity.ok(hospitalAddressService.updateAddress(address));
     }
 

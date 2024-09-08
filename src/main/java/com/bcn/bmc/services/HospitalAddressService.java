@@ -60,14 +60,16 @@ public class HospitalAddressService {
     @Transactional
     public HospitalAddressResponse updateAddress(HospitalAddress newAddress) {
         System.out.println("NEW ADDRESS ID: "+newAddress.getId());
-        Optional<HospitalAddress> addressOptional = hospitalAddressRepository.findById(newAddress.getId());
-
+        System.out.println("NEW ADDRESS HOSPITAL ID: "+newAddress.getHospitalId());
+        Optional<HospitalAddress> addressOptional = hospitalAddressRepository.findAddressByHospitalId(newAddress.getHospitalId());
+        System.out.println("addressOptional: "+ addressOptional);
         if (addressOptional.isPresent()) {
             HospitalAddress existingAddress = addressOptional.get();
             existingAddress.setStreetNumber(newAddress.getStreetNumber());
             existingAddress.setStreetName(newAddress.getStreetName());
             existingAddress.setCity(newAddress.getCity());
             HospitalAddress savedAddress = hospitalAddressRepository.save(existingAddress);
+            System.out.println("savedAddress hos ID: "+ savedAddress.getHospitalId());
             return new HospitalAddressResponse(savedAddress.getId(), "Address updated successfully");
         } else {
             return createAddress(newAddress);
