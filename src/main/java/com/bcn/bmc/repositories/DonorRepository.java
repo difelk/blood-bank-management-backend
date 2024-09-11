@@ -1,7 +1,8 @@
 package com.bcn.bmc.repositories;
 
-import org.springframework.stereotype.Repository;
+import com.bcn.bmc.models.BloodType;
+import com.bcn.bmc.models.Donor;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
-public class DonorRepository {
+public interface DonorRepository  extends JpaRepository<Donor, Long> {
 }

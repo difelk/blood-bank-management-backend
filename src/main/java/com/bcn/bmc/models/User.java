@@ -57,21 +57,10 @@ public class User {
     @Column(name = "nic")
     private String nic;
 
-//    @Column(name = "date")
-//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-//    private LocalDateTime date;
-
     public LocalDate getDob() {
         return dob;
     }
 
-//    public LocalDateTime getDate() {
-//        return date;
-//    }
-//
-//    public void setDate(LocalDateTime date) {
-//        this.date = date;
-//    }
 
     public void setDob(LocalDate dob) {
         this.dob = dob;
