@@ -1,0 +1,47 @@
+-- donor table --
+
+
+CREATE TABLE donors (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nic VARCHAR(255),
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    gender ENUM('MALE', 'FEMALE', 'OTHER') NOT NULL,
+    blood_type VARCHAR(10) NOT NULL,
+    dob DATE,
+    contact_number VARCHAR(20) NOT NULL,
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by BIGINT NOT NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT unique_nic UNIQUE (nic)
+);
+
+
+CREATE TABLE donor_address (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    donor_id BIGINT NOT NULL,
+    street_number VARCHAR(50),
+    street_name VARCHAR(255),
+    city VARCHAR(255),
+    state VARCHAR(255),
+    zip_code VARCHAR(20),
+    FOREIGN KEY (donor_id) REFERENCES donors(id)
+);
+
+
+CREATE TABLE donor_document (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    donor_id BIGINT NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_type VARCHAR(50) NOT NULL,
+    file_size BIGINT NOT NULL,
+    data LONGBLOB NOT NULL,
+    FOREIGN KEY (donor_id) REFERENCES donors(id)
+);
+
+
+select * from donors;
+
+select * from donor_address;
+
+select * from donor_document;
