@@ -53,6 +53,8 @@ public class DonorService {
 
     public List<DonorDetails> getAllDonorsDetails(UserAuthorize userAuthorize) {
         try {
+
+
             List<Donor> donors = donorRepository.findAll();
             List<DonorDetails> donorDetailsList = new ArrayList<>();
 
@@ -76,7 +78,12 @@ public class DonorService {
 
 
     public DonorResponse register(UserAuthorize userAuthorize, Donor donor) {
+        System.out.println("inside donor reg service");
         try {
+            if(donorRepository.findDonorByNic(donor.getNic()).isPresent()){
+                return new DonorResponse("Failure", "Donor Nic Already Exist.");
+            }
+
             donor.setDate(new Date());
 
             donor.setCreatedBy(userAuthorize.getUserId());

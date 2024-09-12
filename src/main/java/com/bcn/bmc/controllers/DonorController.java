@@ -27,6 +27,7 @@ public class DonorController {
     @PostMapping("/register")
     public ResponseEntity<DonorResponse> register(@RequestHeader("Authorization") String tokenHeader, @RequestBody Donor donor
     ) {
+        System.out.println("inside donor cont service");
         UserAuthorize userAuthorize =   tokenHelper.parseToken(tokenHeader);
         donor.setCreatedBy(userAuthorize.getUserId());
         return ResponseEntity.ok(donorService.register(userAuthorize,  donor));
