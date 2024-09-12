@@ -11,19 +11,23 @@ public class DonorDetails {
 
     private List<DonorDocument> donorDocument;
 
+    private List<Donation> donations;
 
-    public DonorDetails(Donor donor, DonorAddress donorAddress, List<DonorDocument> donorDocument){
+    public List<Donation> getDonations() {
+        return donations;
+    }
+
+    public void setDonations(List<Donation> donations) {
+        this.donations = donations;
+    }
+
+    public DonorDetails(Donor donor, DonorAddress donorAddress, List<DonorDocument> donorDocument, List<Donation> donations){
         this.donor = donor;
         this.donorAddress = donorAddress;
         this.donorDocument = donorDocument;
+        this.donations = donations;
 
     }
-
-//    public DonorDetails(Optional<Donor> donor, Optional<DonorAddress> donorAddress, List<DonorDocument> donorDocument) {
-//        this.donor = donor;
-//        this.donorAddress = donorAddress;
-//        this.donorDocument = donorDocument;
-//    }
 
     public Donor getDonor() {
         return donor;

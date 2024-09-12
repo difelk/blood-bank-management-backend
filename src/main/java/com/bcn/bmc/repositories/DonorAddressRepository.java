@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface DonorAddressRepository   extends JpaRepository<DonorAddress, Long> {
+public interface DonorAddressRepository  extends JpaRepository<DonorAddress, Long> {
     @Query("select da from DonorAddress da where da.donorId = ?1")
     DonorAddress findDonorAddressByUserId(@Param("donorId") Long donorId);
 }
