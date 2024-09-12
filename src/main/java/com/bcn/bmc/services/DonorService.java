@@ -137,14 +137,17 @@ public class DonorService {
     @Transactional
     public DonorResponse updateDonor(UserAuthorize userAuthorize, Donor updatedDonor) {
         try {
-            Optional<Donor> optionalDonor = donorRepository.findById(updatedDonor.getId());
+            Optional<Donor> donorWithSameNic = donorRepository.findDonorByNic(updatedDonor.getNic());
+            if (donorWithSameNic.isPresent() && !donorWithSameNic.get().getId().equals(updatedDonor.getId())) {
+                return new DonorResponse("Failed", "Donor NIC already exists.");
+            }
 
-            if (optionalDonor.isEmpty()) {
+            Optional<Donor> donor = donorRepository.findById(updatedDonor.getId());
+            if (donor.isEmpty()) {
                 throw new RuntimeException("Donor not found for ID: " + updatedDonor.getId());
             }
 
-            Donor existingDonor = optionalDonor.get();
-
+            Donor existingDonor = donor.get();
             existingDonor.setFirstName(updatedDonor.getFirstName());
             existingDonor.setLastName(updatedDonor.getLastName());
             existingDonor.setNic(updatedDonor.getNic());
@@ -161,6 +164,7 @@ public class DonorService {
             throw new RuntimeException("Error updating donor: " + e.getMessage(), e);
         }
     }
+
 
     @Transactional
     public DonorResponse deleteDonorById(long id) {
