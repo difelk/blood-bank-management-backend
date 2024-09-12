@@ -1,8 +1,12 @@
 package com.bcn.bmc.services;
 
+import com.bcn.bmc.enums.ActiveStatus;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -128,4 +132,77 @@ public class DonorService {
             throw new RuntimeException("Error creating donor: " + e.getMessage(), e);
         }
     }
+
+
+    @Transactional
+    public DonorResponse updateDonor(UserAuthorize userAuthorize, Donor updatedDonor) {
+        try {
+            Optional<Donor> optionalDonor = donorRepository.findById(updatedDonor.getId());
+
+            if (optionalDonor.isEmpty()) {
+                throw new RuntimeException("Donor not found for ID: " + updatedDonor.getId());
+            }
+
+            Donor existingDonor = optionalDonor.get();
+
+            existingDonor.setFirstName(updatedDonor.getFirstName());
+            existingDonor.setLastName(updatedDonor.getLastName());
+            existingDonor.setNic(updatedDonor.getNic());
+            existingDonor.setGender(updatedDonor.getGender());
+            existingDonor.setBloodType(updatedDonor.getBloodType());
+            existingDonor.setDob(updatedDonor.getDob());
+            existingDonor.setContact(updatedDonor.getContact());
+
+            donorRepository.save(existingDonor);
+
+            return new DonorResponse("Success", "Donor details updated successfully.");
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating donor: " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional
+    public DonorResponse deleteDonorById(long id) {
+        try {
+            Donor donor = donorRepository.findById(id).orElse(null);
+            if (donor != null) {
+                donor.setStatus(ActiveStatus.INACTIVE);
+                donorRepository.save(donor);
+                return new DonorResponse("Success", "Donor marked as inactive successfully");
+            } else {
+                return new DonorResponse("Failed", "Donor not found");
+            }
+        } catch (Exception e) {
+            return new DonorResponse("Failed", "Failed to mark donor as inactive: " + e.getMessage());
+        }
+    }
+
+    @jakarta.transaction.Transactional
+    public ResponseEntity<DonorDocumentResponse> deleteDocumentById(Long documentId) {
+        try {
+            if (!donorDocumentRepository.existsById(documentId)) {
+                return new ResponseEntity<>(
+                        new DonorDocumentResponse("NOT FOUND","Document not found"),
+                        HttpStatus.NOT_FOUND
+                );
+            }
+            DonorDocument document = donorDocumentRepository.findById(documentId).orElse(null);
+            donorDocumentRepository.deleteById(documentId);
+
+            return new ResponseEntity<>(
+                    new DonorDocumentResponse(
+                            "Success",
+                            "Document deleted successfully"
+                    ),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    new DonorDocumentResponse("Failed", "Error occurred while deleting document"),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
 }

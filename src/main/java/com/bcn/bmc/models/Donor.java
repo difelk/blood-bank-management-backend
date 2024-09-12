@@ -1,5 +1,6 @@
 package com.bcn.bmc.models;
 
+import com.bcn.bmc.enums.ActiveStatus;
 import com.bcn.bmc.enums.Gender;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -40,6 +41,18 @@ public class Donor {
 
     @Column(name = "created_date", nullable = false)
     private Date date;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ActiveStatus status = ActiveStatus.ACTIVE;
+
+    public ActiveStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ActiveStatus status) {
+        this.status = status;
+    }
 
     public Long getId() {
         return id;
