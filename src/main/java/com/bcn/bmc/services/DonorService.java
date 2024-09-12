@@ -1,12 +1,10 @@
 package com.bcn.bmc.services;
 
 import com.bcn.bmc.models.*;
-import com.bcn.bmc.repositories.DonorAddressRepository;
-import com.bcn.bmc.repositories.DonorDocumentRepository;
-import com.bcn.bmc.repositories.DonorRepository;
-import com.bcn.bmc.repositories.UserRepository;
+import com.bcn.bmc.repositories.*;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -19,17 +17,17 @@ public class DonorService {
     private final DonorAddressRepository donorAddressRepository;
 
     private final DonorDocumentRepository donorDocumentRepository;
+    private final DonationRepositories donationRepositories;
 
-
-    public DonorService(DonorRepository donorRepository, DonorAddressRepository donorAddressRepository, DonorDocumentRepository donorDocumentRepository) {
+    public DonorService(DonorRepository donorRepository, DonorAddressRepository donorAddressRepository, DonorDocumentRepository donorDocumentRepository, DonationRepositories donationRepositories) {
         this.donorRepository = donorRepository;
         this.donorAddressRepository = donorAddressRepository;
         this.donorDocumentRepository = donorDocumentRepository;
-
+        this.donationRepositories = donationRepositories;
     }
 
 
-    public DonorDetails getAllDonors(UserAuthorize userAuthorize, Long donorId) {
+    public DonorDetails getDonorByID(UserAuthorize userAuthorize, Long donorId) {
         try {
             Optional<Donor> optionalDonor = donorRepository.findById(donorId);
 
@@ -39,14 +37,40 @@ public class DonorService {
             Donor donor = optionalDonor.get();
             DonorAddress donorAddress = null;
             List<DonorDocument> donorDocument = null;
+            List<Donation> donorDonations = null;
             if (donor.getId() != null) {
                 donorAddress = donorAddressRepository.findDonorAddressByUserId(donorId);
                 donorDocument = donorDocumentRepository.findDonorDocumentsByUserId(donorId);
+                donorDonations = donationRepositories.findDonationByDonorId(donorId);
             }
-            return new DonorDetails(donor, donorAddress, donorDocument);
+            return new DonorDetails(donor, donorAddress, donorDocument, donorDonations);
 
         } catch (Exception e) {
             throw new RuntimeException("Error creating donor: " + e.getMessage(), e);
+        }
+    }
+
+
+    public List<DonorDetails> getAllDonorsDetails(UserAuthorize userAuthorize) {
+        try {
+            List<Donor> donors = donorRepository.findAll();
+            List<DonorDetails> donorDetailsList = new ArrayList<>();
+
+            for (Donor donor : donors) {
+                DonorAddress donorAddress = null;
+                List<DonorDocument> donorDocument = null;
+                List<Donation> donorDonations = null;
+                if (donor.getId() != null) {
+                    donorAddress = donorAddressRepository.findDonorAddressByUserId(donor.getId());
+                    donorDocument = donorDocumentRepository.findDonorDocumentsByUserId(donor.getId());
+                    donorDonations = donationRepositories.findDonationByDonorId(donor.getId());
+                }
+                donorDetailsList.add(new DonorDetails(donor, donorAddress, donorDocument, donorDonations));
+            }
+            return donorDetailsList;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching donor details: " + e.getMessage(), e);
         }
     }
 

@@ -46,10 +46,18 @@ public class DonorController {
         return ResponseEntity.ok(donorService.saveDocument(userAuthorize,  donorDocument));
     }
 
+    @GetMapping("/all")
+    public List<DonorDetails> getAllDonorDetails(@RequestHeader("Authorization") String tokenHeader) {
+        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        return donorService.getAllDonorsDetails(userAuthorize);
+    }
+
+
     @GetMapping("/{donorId}")
     public DonorDetails getDonorDetails(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long donorId){
         UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
-        System.out.println("called the get donor controller: " + donorId);
-        return donorService.getAllDonors(userAuthorize, donorId);
+        return donorService.getDonorByID(userAuthorize, donorId);
     }
+
+
 }
