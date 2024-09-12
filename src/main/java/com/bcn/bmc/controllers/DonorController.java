@@ -60,5 +60,24 @@ public class DonorController {
         return donorService.getDonorByID(userAuthorize, donorId);
     }
 
+    @PutMapping("/{donorId}")
+    public ResponseEntity<DonorResponse> updateDonor(
+            @RequestHeader("Authorization") String tokenHeader,
+            @PathVariable Long donorId,
+            @RequestBody Donor updatedDonor
+    ) {
+        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        updatedDonor.setId(donorId);
+        return ResponseEntity.ok(donorService.updateDonor(userAuthorize, updatedDonor));
+    }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<DonorResponse> deleteDonorById(@PathVariable Long id) {
+        return ResponseEntity.ok(donorService.deleteDonorById(id));
+    }
+
+    @DeleteMapping("/documents/{documentId}")
+    public ResponseEntity<DonorDocumentResponse> deleteDocumentById(@PathVariable Long documentId) {
+        return donorService.deleteDocumentById(documentId);
+    }
 }

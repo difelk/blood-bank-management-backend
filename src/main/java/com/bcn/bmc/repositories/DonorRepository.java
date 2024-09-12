@@ -9,7 +9,6 @@ import java.util.Optional;
 
 public interface DonorRepository  extends JpaRepository<Donor, Long> {
 
-
     @Query("select d from Donor d where d.nic =?1")
     Optional<Donor> findDonorByNic(@Param("nic") String nic);
 }

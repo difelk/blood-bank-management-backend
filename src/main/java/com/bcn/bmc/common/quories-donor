@@ -54,6 +54,13 @@ CREATE TABLE donor_document (
 );
 
 
+--------- ALTER TABLE DONORS - ADDED STATUS COLUMN ---------
+
+ALTER TABLE donors
+ADD COLUMN status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE';
+
+
+
 select * from donors;
 
 select * from donor_address;
