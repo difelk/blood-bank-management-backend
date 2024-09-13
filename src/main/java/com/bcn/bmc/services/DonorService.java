@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -85,7 +87,7 @@ public class DonorService {
         System.out.println("inside donor reg service");
         try {
             if(donorRepository.findDonorByNic(donor.getNic()).isPresent()){
-                return new DonorResponse("Failure", "Donor Nic Already Exist.");
+                return new DonorResponse("Failure", "Donor Nic Already Exist.",donor.getId());
             }
 
             donor.setDate(new Date());
@@ -94,7 +96,7 @@ public class DonorService {
             Donor newDonor = donorRepository.save(donor);
 
             if (newDonor.getId() > 0) {
-                return new DonorResponse("Success", "Donor registered successfully.");
+                return new DonorResponse("Success", "Donor registered successfully.", newDonor.getId());
             } else {
                 return new DonorResponse("Failure", "Donor registration failed.");
             }
@@ -105,22 +107,22 @@ public class DonorService {
     }
 
 
-    public DonorAddressResponse saveAddress(UserAuthorize userAuthorize, DonorAddress donorAddress) {
+    public DonorAddressResponse saveAddress(UserAuthorize userAuthorize, Long donorId, DonorAddress donorAddress) {
         try {
-
-            donorAddress.setDonorId(userAuthorize.getUserId());
+            donorAddress.setDonorId(donorId);
             DonorAddress donorAddress1 = donorAddressRepository.save(donorAddress);
 
             if (donorAddress1.getId() > 0) {
-                return new DonorAddressResponse("Success", "Donor registered successfully.");
+                return new DonorAddressResponse("Success", "Donor address registered successfully.");
             } else {
-                return new DonorAddressResponse("Failure", "Donor registration failed.");
+                return new DonorAddressResponse("Failure", "Donor address registration failed.");
             }
 
         } catch (Exception e) {
             throw new RuntimeException("Error creating donor: " + e.getMessage(), e);
         }
     }
+
 
 
     public DonorDocumentResponse saveDocument(UserAuthorize userAuthorize, DonorDocument donorDocument) {
@@ -138,6 +140,21 @@ public class DonorService {
         } catch (Exception e) {
             throw new RuntimeException("Error creating donor: " + e.getMessage(), e);
         }
+    }
+
+    @Transactional
+    public DonorDocument storeFile(MultipartFile file, Long donorId) throws IOException {
+        Donor donor = donorRepository.findById(donorId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid donor ID"));
+
+        DonorDocument donorDocument = new DonorDocument();
+        donorDocument.setFileName(file.getOriginalFilename());
+        donorDocument.setFileType(file.getContentType());
+        donorDocument.setFileSize(file.getSize());
+        donorDocument.setData(file.getBytes());
+        donorDocument.setDonorId(donor.getId());
+
+        return donorDocumentRepository.save(donorDocument);
     }
 
 
@@ -165,7 +182,7 @@ public class DonorService {
 
             donorRepository.save(existingDonor);
 
-            return new DonorResponse("Success", "Donor details updated successfully.");
+            return new DonorResponse("Success", "Donor details updated successfully.", updatedDonor.getId());
 
         } catch (Exception e) {
             throw new RuntimeException("Error updating donor: " + e.getMessage(), e);
@@ -174,9 +191,9 @@ public class DonorService {
 
 
     @Transactional
-    public DonorResponse deleteDonorById(long id) {
+    public DonorResponse deleteDonorById(long donorId) {
         try {
-            Donor donor = donorRepository.findById(id).orElse(null);
+            Donor donor = donorRepository.findById(donorId).orElse(null);
             if (donor != null) {
                 donor.setStatus(ActiveStatus.INACTIVE);
                 donorRepository.save(donor);
@@ -189,7 +206,7 @@ public class DonorService {
         }
     }
 
-    @jakarta.transaction.Transactional
+    @Transactional
     public ResponseEntity<DonorDocumentResponse> deleteDocumentById(Long documentId) {
         try {
             if (!donorDocumentRepository.existsById(documentId)) {
@@ -216,4 +233,52 @@ public class DonorService {
         }
     }
 
+    public Donor getDonorByNic(String donorNic) {
+        try {
+            return donorRepository.findDonorByNic(donorNic).orElse(null);
+        } catch (Exception e) {
+            System.out.println("Error fetching donor by nic: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public List<Donor> getAllDonors(UserAuthorize admin) {
+        try {
+            if (admin.getOrganization() == 1) {
+                return donorRepository.findAllByStatus(ActiveStatus.ACTIVE);
+            }else{
+                return donorRepository.findAllByOrganizationId(admin.getOrganization());
+            }
+        } catch (Exception e) {
+            System.out.println("Error fetching all donors: " + e.getMessage());
+            return null;
+        }
+
+
+    }
+
+    public List<DonorAddress> getAllAddresses() {
+        try {
+
+            return donorAddressRepository.findAll();
+        } catch (Exception e) {
+            System.out.println("Error fetching all adresses: " + e.getMessage());
+            return null;
+        }
+    }
+
+
+    public List<DonorDocument> getDonorDocumentsById(Long donorId) {
+        return donorDocumentRepository.findDonorDocumentsByUserId(donorId);
+    }
+
+
+    public Donor getDonorById(long donorId) {
+        try {
+            return donorRepository.findById(donorId).orElse(null);
+        } catch (Exception e) {
+            System.out.println("Error fetching donor by ID: " + e.getMessage());
+            return null;
+        }
+    }
 }
