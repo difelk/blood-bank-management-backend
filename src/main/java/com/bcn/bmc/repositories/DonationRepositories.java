@@ -11,6 +11,13 @@ import java.util.Optional;
 
 public interface DonationRepositories  extends JpaRepository<Donation, Long> {
 
+    @Query("select da from Donation da where da.status <> 'INACTIVE'")
+    List<Donation> findAllDonations();
+
+
+    @Query("select da from Donation da where  da.organizationId = :organizationId AND da.status <> 'INACTIVE'")
+    List<Donation> findAllDonationsByOrg(@Param("organizationId") long organizationId);
+
     @Query("select da from Donation da where da.donor = ?1")
     List<Donation> findDonationByDonorId(@Param("donor") Long donor);
 
