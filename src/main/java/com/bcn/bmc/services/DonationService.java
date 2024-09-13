@@ -2,19 +2,24 @@ package com.bcn.bmc.services;
 
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.DonationRepositories;
+import com.bcn.bmc.repositories.DonorRepository;
+import com.bcn.bmc.repositories.OrganizationRepository;
+import com.bcn.bmc.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class DonationService {
 
-    private final  DonationRepositories donationRepositories;
+    private final CommonService commonService;
+    private final DonationRepositories donationRepository;
 
-    public DonationService(DonationRepositories donationRepositories){
-        this.donationRepositories = donationRepositories;
+    @Autowired
+    public DonationService(CommonService commonService, DonationRepositories donationRepository) {
+        this.commonService = commonService;
+        this.donationRepository = donationRepository;
     }
 
     public DonationResponse createDonation(UserAuthorize userAuthorize, Donation donation) {
@@ -36,7 +41,7 @@ public class DonationService {
                 return new DonationResponse("Failure", "Donor cannot donate for a future date.");
             }
 
-            Optional<Donation> lastDonation = donationRepositories.findLastDonationByDonor(donation.getDonor());
+            Optional<Donation> lastDonation = donationRepository.findLastDonationByDonor(donation.getDonor());
 
             if (lastDonation.isPresent()) {
                 Calendar threeMonthsAgo = Calendar.getInstance();
@@ -49,7 +54,7 @@ public class DonationService {
 
             donation.setCreatedBy(userAuthorize.getUserId());
 
-            Donation newDonation = donationRepositories.save(donation);
+            Donation newDonation = donationRepository.save(donation);
 
 
             if (newDonation.getId() > 0) {
@@ -62,6 +67,46 @@ public class DonationService {
             throw new RuntimeException("Error creating donation: " + e.getMessage(), e);
         }
     }
+
+
+
+    public List<DonationDetails> getAllDonations(UserAuthorize userAuthorize) {
+        try {
+            List<Donation> donations = userAuthorize.getOrganization() == 1
+                    ? donationRepository.findAllDonations()
+                    : donationRepository.findAllDonationsByOrg(userAuthorize.getOrganization());
+
+
+            List<DonationDetails> donationDetails = new ArrayList<>();
+
+            for (Donation donation : donations) {
+                KeyValue donatedDonor = commonService.fetchDonorKeyValue(donation.getDonor());
+
+                KeyValue donatedOrganization = commonService.fetchOrganizationKeyValue(donation.getOrganizationId());
+
+                KeyValue donatedHandledUser = commonService.fetchUserKeyValue(donation.getCreatedBy());
+
+                donationDetails.add(new DonationDetails(
+                        donation.getId(),
+                        donatedDonor,
+                        donatedOrganization,
+                        donation.getQuantity(),
+                        donatedHandledUser,
+                        donation.getBloodType(),
+                        donation.getDonationDate()
+                ));
+            }
+
+            return donationDetails;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching donation details: " + e.getMessage(), e);
+        }
+    }
+
+
+
+
 
 
 
