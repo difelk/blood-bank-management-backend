@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.*;
 
 
 @Service
@@ -103,6 +103,37 @@ public class DonorService {
 
         } catch (Exception e) {
             throw new RuntimeException("Error creating donor: " + e.getMessage(), e);
+        }
+    }
+
+    public DonorResponse createDonorFromCsv(UserAuthorize userAuthorize, MultipartFile file) {
+
+        try {
+            InputStream inputStream = file.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            String[] headers = reader.readLine().trim().split(",");
+            List<Map<String, String>> data = new ArrayList<>();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] columns = line.split(",");
+                Map<String, String> row = new HashMap<>();
+                for (int i = 0; i < headers.length && i < columns.length; i++) {
+                    row.put(headers[i].replaceAll("^\\W+", "").trim(), columns[i]);
+                    System.out.println("headers[i] - " + headers[i]);
+                    System.out.println("columns[i] - " + (columns[i].isEmpty() ? "" : columns[i]));
+                }
+                try {
+//                    CsvHandler.validateCsvDonor(row);
+                    data.add(row);
+                } catch (Exception e) {
+                    System.out.println("Validation error for row: " + e.getMessage());
+                }
+            }
+        }catch (Exception e){
+
+        }finally {
+            return new DonorResponse("Failure", "Donor registration with csv failed.");
         }
     }
 

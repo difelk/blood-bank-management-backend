@@ -133,4 +133,12 @@ public class DonorController {
     public Donor getDonorById(@PathVariable Long donorId) {
         return donorService.getDonorById(donorId);
     }
+
+
+    @PostMapping(path = "/csv")
+    public DonorResponse uploadCsvFile( @RequestHeader("Authorization") String tokenHeader, @RequestParam("file") MultipartFile file) {
+        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        return donorService.createDonorFromCsv(userAuthorize, file);
+
+    }
 }
