@@ -39,4 +39,10 @@ public class DonationController {
         System.out.println("called get all donations in controller");
         return donationService.getAllDonations(userAuthorize);
     }
+
+    @GetMapping("/donor/{donor}")
+    public List<DonationDetails> getAllDonationsByDonorId(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long donor) {
+        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        return donationService.getAllDonationsByDonorId(userAuthorize, donor);
+    }
 }

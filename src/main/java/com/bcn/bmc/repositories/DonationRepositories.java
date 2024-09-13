@@ -21,7 +21,8 @@ public interface DonationRepositories  extends JpaRepository<Donation, Long> {
     @Query("select da from Donation da where da.donor = ?1")
     List<Donation> findDonationByDonorId(@Param("donor") Long donor);
 
-
+    @Query("select da from Donation da where da.donor = :donor AND da.organizationId = :organizationId AND da.status <> 'INACTIVE'")
+    List<Donation> findDonationByDonorIdWithinOrg(@Param("donor") Long donor, @Param("organizationId") long organizationId);
     @Query("SELECT da FROM Donation da WHERE da.donor = :donorId ORDER BY da.donationDate DESC")
     Optional<Donation> findLastDonationByDonor(@Param("donorId") Long donorId);
 }

@@ -72,44 +72,54 @@ public class DonationService {
 
 
 
+    private List<DonationDetails> mapDonationsToDetails(List<Donation> donations) {
+        List<DonationDetails> donationDetails = new ArrayList<>();
+
+        for (Donation donation : donations) {
+            KeyValue donatedDonor = commonService.fetchDonorKeyValue(donation.getDonor());
+
+            KeyValue donatedOrganization = commonService.fetchOrganizationKeyValue(donation.getOrganizationId());
+
+            KeyValue donatedHandledUser = commonService.fetchUserKeyValue(donation.getCreatedBy());
+
+            donationDetails.add(new DonationDetails(
+                    donation.getId(),
+                    donatedDonor,
+                    donatedOrganization,
+                    donation.getQuantity(),
+                    donatedHandledUser,
+                    donation.getBloodType(),
+                    donation.getDonationDate()
+            ));
+        }
+
+        return donationDetails;
+    }
+
     public List<DonationDetails> getAllDonations(UserAuthorize userAuthorize) {
         try {
             List<Donation> donations = userAuthorize.getOrganization() == 1
                     ? donationRepository.findAllDonations()
                     : donationRepository.findAllDonationsByOrg(userAuthorize.getOrganization());
 
-
-            List<DonationDetails> donationDetails = new ArrayList<>();
-
-            for (Donation donation : donations) {
-                KeyValue donatedDonor = commonService.fetchDonorKeyValue(donation.getDonor());
-
-                KeyValue donatedOrganization = commonService.fetchOrganizationKeyValue(donation.getOrganizationId());
-
-                KeyValue donatedHandledUser = commonService.fetchUserKeyValue(donation.getCreatedBy());
-
-                donationDetails.add(new DonationDetails(
-                        donation.getId(),
-                        donatedDonor,
-                        donatedOrganization,
-                        donation.getQuantity(),
-                        donatedHandledUser,
-                        donation.getBloodType(),
-                        donation.getDonationDate()
-                ));
-            }
-
-            return donationDetails;
+            return mapDonationsToDetails(donations);
 
         } catch (Exception e) {
             throw new RuntimeException("Error fetching donation details: " + e.getMessage(), e);
         }
     }
 
+    public List<DonationDetails> getAllDonationsByDonorId(UserAuthorize userAuthorize, long donor) {
+        try {
+            List<Donation> donations = userAuthorize.getOrganization() == 1
+                    ? donationRepository.findDonationByDonorId(donor)
+                    : donationRepository.findDonationByDonorIdWithinOrg(donor, userAuthorize.getOrganization());
 
+            return mapDonationsToDetails(donations);
 
-
-
-
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching donation details: " + e.getMessage(), e);
+        }
+    }
 
 }
