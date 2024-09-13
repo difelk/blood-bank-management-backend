@@ -24,22 +24,23 @@ public class DonationService {
 
     public DonationResponse createDonation(UserAuthorize userAuthorize, Donation donation) {
         try {
-            Calendar today = Calendar.getInstance();
-            today.set(Calendar.HOUR_OF_DAY, 0);
-            today.set(Calendar.MINUTE, 0);
-            today.set(Calendar.SECOND, 0);
-            today.set(Calendar.MILLISECOND, 0);
+//            Calendar today = Calendar.getInstance();
+//            today.set(Calendar.HOUR_OF_DAY, 0);
+//            today.set(Calendar.MINUTE, 0);
+//            today.set(Calendar.SECOND, 0);
+//            today.set(Calendar.MILLISECOND, 0);
 
             if (donation.getDonationDate() == null) {
                 donation.setDonationDate(new Date());
             }
+            donation.setDonationDate(new Date());
 
-            Calendar donationDate = Calendar.getInstance();
-            donationDate.setTime(donation.getDonationDate());
+            Date donationDate = new Date();
+//            donationDate.setTime(donation.getDonationDate());
 
-            if (donationDate.after(today)) {
-                return new DonationResponse("Failure", "Donor cannot donate for a future date.");
-            }
+//            if (donationDate.after(today)) {
+//                return new DonationResponse("Failure", "Donor cannot donate for a future date.");
+//            }
 
             Optional<Donation> lastDonation = donationRepository.findLastDonationByDonor(donation.getDonor());
 
@@ -54,6 +55,7 @@ public class DonationService {
 
             donation.setCreatedBy(userAuthorize.getUserId());
 
+            donation.setOrganizationId((long) userAuthorize.getOrganization());
             Donation newDonation = donationRepository.save(donation);
 
 
