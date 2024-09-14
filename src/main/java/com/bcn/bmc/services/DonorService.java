@@ -143,14 +143,12 @@ public class DonorService {
                     donor.setFirstName(row.get("firstName"));
                     donor.setLastName(row.get("lastName"));
 
-                    // Handling gender case-insensitively
                     String gender = row.get("gender");
                     if (gender != null) {
                         donor.setGender(Gender.valueOf(gender.toUpperCase()));
                     }
                     donor.setBloodType(row.get("bloodType"));
 
-                    // Handle DOB
                     try {
                         donor.setDob(LocalDate.parse(row.get("dob"), dateFormatter));
                     } catch (DateTimeParseException e) {
