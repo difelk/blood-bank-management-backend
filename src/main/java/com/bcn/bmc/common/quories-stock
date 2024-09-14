@@ -1,0 +1,52 @@
+CREATE TABLE stock (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT NOT NULL,  -- Reference to the organization owning the stock
+    blood_type VARCHAR(10) NOT NULL,  -- e.g., A+, B-, O+
+    quantity DECIMAL(10,2) NOT NULL,  -- Total quantity of this blood type in stock
+    last_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id),
+    CONSTRAINT unique_stock UNIQUE (organization_id, blood_type)
+);
+
+
+CREATE TABLE patients (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nic VARCHAR(255),
+    name VARCHAR(255) NOT NULL,
+    contact_number VARCHAR(20),
+    organization_id INT NOT NULL,
+    date_of_birth DATE,
+    FOREIGN KEY (organization_id) REFERENCES organizations(organization_id)
+);
+
+
+
+CREATE TABLE stock_transactions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    stock_id BIGINT NOT NULL,  -- Reference to the stock record
+    transaction_type ENUM('DONATION', 'TRANSFER_IN', 'TRANSFER_OUT', 'WITHDRAWAL') NOT NULL,  -- Type of stock change
+    quantity DECIMAL(10,2) NOT NULL,  -- Quantity of blood involved in the transaction
+    transaction_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    donor_id BIGINT,  -- Reference to the donor if applicable (for donations)
+    source_organization_id BIGINT,  -- For transfers, the organization from which the blood is coming
+    destination_organization_id BIGINT,  -- For transfers, the organization to which the blood is going
+    patient_id BIGINT,  -- For withdrawals, reference to the patient (if applicable)
+    FOREIGN KEY (stock_id) REFERENCES stock(id),
+    FOREIGN KEY (donor_id) REFERENCES donors(id),
+    FOREIGN KEY (source_organization_id) REFERENCES organizations(id),
+    FOREIGN KEY (destination_organization_id) REFERENCES organizations(id),
+    FOREIGN KEY (patient_id) REFERENCES patients(id) -- Assuming you have a patients table
+);
+
+
+CREATE TABLE blood_requests (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    requestor_organization_id BIGINT NOT NULL,  -- Organization making the request
+    provider_organization_id BIGINT NOT NULL,  -- Organization providing the blood
+    blood_type VARCHAR(10) NOT NULL,  -- Type of blood requested
+    quantity DECIMAL(10,2) NOT NULL,  -- Quantity requested
+    request_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fulfillment_status ENUM('PENDING', 'FULFILLED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
+    FOREIGN KEY (requestor_organization_id) REFERENCES organizations(id),
+    FOREIGN KEY (provider_organization_id) REFERENCES organizations(id)
+);
