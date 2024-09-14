@@ -122,4 +122,70 @@ public class DonationService {
         }
     }
 
+    @Transactional
+    public DonationResponse updateDonation(UserAuthorize userAuthorize, Donation donation) {
+        try {
+            Optional<Donation> existingDonationOpt = donationRepository.findById(donation.getId());
+            if (!existingDonationOpt.isPresent()) {
+
+                return new DonationResponse("Failure", "Donation not found.");
+            }
+
+            Donation existingDonation = existingDonationOpt.get();
+
+
+            List<Donation> donorDonations = donationRepository.findByDonor(existingDonation.getDonor());
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(donation.getDonationDate());
+            calendar.add(Calendar.MONTH, 3);
+            Date futureDateLimit = calendar.getTime();
+
+
+
+            for (Donation d : donorDonations) {
+                if (!d.getId().equals(donation.getId())) {
+                    if (d.getDonationDate().before(futureDateLimit)) {
+                        return new DonationResponse("Failure", "Cannot update donation within 3 months of a previous donation.");
+                    }
+                }
+            }
+
+
+
+
+            existingDonation.setDonationDate(donation.getDonationDate());
+            existingDonation.setQuantity(donation.getQuantity());
+            existingDonation.setBloodType(donation.getBloodType());
+
+            donationRepository.save(existingDonation);
+
+            return new DonationResponse("Success", "Donation updated successfully.");
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating donation: " + e.getMessage(), e);
+        }
+    }
+
+
+
+    @Transactional
+    public DonationResponse deleteDonation(long donationId) {
+        try {
+            Optional<Donation> donationOpt = donationRepository.findById(donationId);
+            if (!donationOpt.isPresent()) {
+                return new DonationResponse("Failure", "Donation not found.");
+            }
+
+            donationRepository.deleteById(donationId);
+
+            return new DonationResponse("Success", "Donation deleted successfully.");
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error deleting donation: " + e.getMessage(), e);
+        }
+    }
+
+
+
+
 }
