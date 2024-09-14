@@ -9,6 +9,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -28,43 +31,58 @@ public class DonationService {
     @Transactional
     public DonationResponse createDonation(UserAuthorize userAuthorize, Donation donation) {
         try {
-
             if (donation.getDonationDate() == null) {
                 donation.setDonationDate(new Date());
             }
-            donation.setDonationDate(new Date());
 
-            Date donationDate = new Date();
+//            Date newDonationDate = donation.getDonationDate();
 
-            Optional<Donation> lastDonation = donationRepository.findLastDonationByDonor(donation.getDonor());
-            if (lastDonation.isPresent()) {
-                Calendar threeMonthsAgo = Calendar.getInstance();
-                threeMonthsAgo.add(Calendar.MONTH, -3);
+            LocalDate newDonationDate = donation.getDonationDate().toInstant()
+                    .atZone(ZoneId.systemDefault()).toLocalDate();
 
-                if (lastDonation.get().getDonationDate().after(threeMonthsAgo.getTime())) {
-                    return new DonationResponse("Failure", "Donor cannot donate again within 3 months of the last donation.");
+            List<Donation> donorDonations = donationRepository.findByDonor(donation.getDonor());
+            if (!donorDonations.isEmpty()) {
+                // Check for donations within 3 months of the new donation date (past and future)
+                LocalDate threeMonthsAgo = newDonationDate.minus(3, ChronoUnit.MONTHS);
+                LocalDate threeMonthsAfter = newDonationDate.plus(3, ChronoUnit.MONTHS);
+
+                boolean hasInvalidDonation = donorDonations.stream()
+                        .anyMatch(d -> {
+                            LocalDate donationDate = d.getDonationDate().toInstant()
+                                    .atZone(ZoneId.systemDefault()).toLocalDate();
+                            return !donationDate.isBefore(threeMonthsAgo) && !donationDate.isAfter(threeMonthsAfter);
+                        });
+
+                if (hasInvalidDonation) {
+                    return new DonationResponse("Failure",
+                            "Donor is not eligible for a new donation. There is another donation within 3 months of the specified date.");
                 }
             }
 
-            donation.setCreatedBy(userAuthorize.getUserId());
+            // Check if the new donation date is in the future
+            if (newDonationDate.isAfter(LocalDate.now())) {
+                return new DonationResponse("Failure", "Donation date cannot be in the future.");
+            }
 
+            donation.setCreatedBy(userAuthorize.getUserId());
             donation.setOrganizationId((long) userAuthorize.getOrganization());
+
             Donation newDonation = donationRepository.save(donation);
 
             if (newDonation.getId() > 0) {
                 try {
-                    Stock stock =  stockService.addStock(
+
+                    Stock stock = stockService.addStock(
                             donation.getOrganizationId(),
                             donation.getBloodType(),
                             donation.getQuantity()
                     );
-                    return new DonationResponse("Success", "Donor registered successfully.");
+                    return new DonationResponse("Success", "Donation added successfully.");
                 } catch (Exception stockUpdateException) {
-
-                    return new DonationResponse("Partial Success", "Donation registered successfully, but failed to update stock. Error: " + stockUpdateException.getMessage());
+                    return new DonationResponse("Partial Success", "Donation added successfully, but failed to update stock. Error: " + stockUpdateException.getMessage());
                 }
             } else {
-                return new DonationResponse("Failure", "Donor registration failed.");
+                return new DonationResponse("Failure", "Donation added failed.");
             }
 
         } catch (Exception e) {
