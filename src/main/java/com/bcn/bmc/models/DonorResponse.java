@@ -1,11 +1,15 @@
 package com.bcn.bmc.models;
 
+import java.util.List;
+import java.util.Map;
+
 public class DonorResponse {
 
 
         private String status;
         private String message;
         private Long donorId;
+    private Map<String, List<String>> failureDetails;
 
         public DonorResponse(String status, String message) {
             this.status = status;
@@ -18,7 +22,21 @@ public class DonorResponse {
             this.donorId = donorId;
         }
 
-        public String getStatus() {
+    public DonorResponse(String status, String message, Map<String, List<String>> failureDetails) {
+        this.status = status;
+        this.message = message;
+        this.failureDetails = failureDetails;
+    }
+
+    public Map<String, List<String>> getFailureDetails() {
+        return failureDetails;
+    }
+
+    public void setFailureDetails(Map<String, List<String>> failureDetails) {
+        this.failureDetails = failureDetails;
+    }
+
+    public String getStatus() {
             return status;
         }
 

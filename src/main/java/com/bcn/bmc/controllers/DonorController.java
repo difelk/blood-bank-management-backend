@@ -139,6 +139,5 @@ public class DonorController {
     public DonorResponse uploadCsvFile( @RequestHeader("Authorization") String tokenHeader, @RequestParam("file") MultipartFile file) {
         UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
         return donorService.createDonorFromCsv(userAuthorize, file);
-
     }
 }

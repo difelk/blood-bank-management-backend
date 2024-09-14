@@ -1,6 +1,7 @@
 package com.bcn.bmc.services;
 
 import com.bcn.bmc.enums.ActiveStatus;
+import com.bcn.bmc.enums.Gender;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.*;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 
@@ -25,11 +30,15 @@ public class DonorService {
     private final DonorDocumentRepository donorDocumentRepository;
     private final DonationRepositories donationRepositories;
 
-    public DonorService(DonorRepository donorRepository, DonorAddressRepository donorAddressRepository, DonorDocumentRepository donorDocumentRepository, DonationRepositories donationRepositories) {
+
+    private final DonationService donationService;
+
+    public DonorService(DonorRepository donorRepository, DonorAddressRepository donorAddressRepository, DonorDocumentRepository donorDocumentRepository, DonationRepositories donationRepositories, DonationService donationService) {
         this.donorRepository = donorRepository;
         this.donorAddressRepository = donorAddressRepository;
         this.donorDocumentRepository = donorDocumentRepository;
         this.donationRepositories = donationRepositories;
+        this.donationService = donationService;
     }
 
 
@@ -107,35 +116,122 @@ public class DonorService {
     }
 
     public DonorResponse createDonorFromCsv(UserAuthorize userAuthorize, MultipartFile file) {
+        List<Donor> successfulDonors = new ArrayList<>();
+        List<String> failedDonorRows = new ArrayList<>();
+        List<String> failedDonationRows = new ArrayList<>();
+        List<String> failedDonorMessages = new ArrayList<>();
+        List<String> failedDonationMessages = new ArrayList<>();
+        int successCount = 0;
 
-        try {
-            InputStream inputStream = file.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("M/d/yyyy");
 
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             String[] headers = reader.readLine().trim().split(",");
-            List<Map<String, String>> data = new ArrayList<>();
             String line;
+
             while ((line = reader.readLine()) != null) {
                 String[] columns = line.split(",");
                 Map<String, String> row = new HashMap<>();
+
                 for (int i = 0; i < headers.length && i < columns.length; i++) {
                     row.put(headers[i].replaceAll("^\\W+", "").trim(), columns[i]);
-                    System.out.println("headers[i] - " + headers[i]);
-                    System.out.println("columns[i] - " + (columns[i].isEmpty() ? "" : columns[i]));
                 }
+
                 try {
-//                    CsvHandler.validateCsvDonor(row);
-                    data.add(row);
+                    Donor donor = new Donor();
+                    donor.setNic(row.get("nic"));
+                    donor.setFirstName(row.get("firstName"));
+                    donor.setLastName(row.get("lastName"));
+
+                    // Handling gender case-insensitively
+                    String gender = row.get("gender");
+                    if (gender != null) {
+                        donor.setGender(Gender.valueOf(gender.toUpperCase()));
+                    }
+                    donor.setBloodType(row.get("bloodType"));
+
+                    // Handle DOB
+                    try {
+                        donor.setDob(LocalDate.parse(row.get("dob"), dateFormatter));
+                    } catch (DateTimeParseException e) {
+                        failedDonorRows.add(line);
+                        failedDonorMessages.add("Failed to parse DOB for donor NIC: " + donor.getNic() + ". Error: " + e.getMessage());
+                        continue; // Skip to next row
+                    }
+
+                    donor.setContact(row.get("contact"));
+
+                    DonorResponse donorResponse = register(userAuthorize, donor);
+                    if ("Success".equals(donorResponse.getStatus())) {
+                        successfulDonors.add(donor);
+                        successCount++;
+
+                        String donationQtyStr = row.get("donationQty");
+                        if (donationQtyStr != null && !donationQtyStr.isEmpty()) {
+                            double donationQty;
+                            try {
+                                donationQty = Double.parseDouble(donationQtyStr);
+                            } catch (NumberFormatException e) {
+                                failedDonationRows.add(line);
+                                failedDonationMessages.add("Invalid donation quantity for donor NIC: " + donor.getNic() + ". Error: " + e.getMessage());
+                                continue;
+                            }
+
+                            if (donationQty > 0) {
+                                Donation donation = new Donation();
+                                donation.setDonor(donorResponse.getDonorId());
+                                donation.setBloodType(donor.getBloodType());
+                                donation.setQuantity(donationQty);
+
+                                String donationDateStr = row.get("donationDate");
+                                if (donationDateStr == null || donationDateStr.isEmpty()) {
+                                    donation.setDonationDate(java.sql.Date.valueOf(LocalDate.now()));
+                                } else {
+                                    try {
+                                        donation.setDonationDate(java.sql.Date.valueOf(LocalDate.parse(donationDateStr, dateFormatter)));
+                                    } catch (DateTimeParseException e) {
+                                        failedDonationRows.add(line);
+                                        failedDonationMessages.add("Failed to parse donation date for donor NIC: " + donor.getNic() + ". Error: " + e.getMessage());
+                                        continue;
+                                    }
+                                }
+
+                                DonationResponse donationResponse = donationService.createDonation(userAuthorize, donation);
+                                if (!"Success".equals(donationResponse.getStatus())) {
+                                    failedDonationRows.add(line);
+                                    failedDonationMessages.add("Failed to create donation for donor NIC: " + donor.getNic() + ". Error: " + donationResponse.getMessage());
+                                }
+                            }
+                        }
+
+                    } else {
+                        failedDonorRows.add(line);
+                        failedDonorMessages.add("Failed to register donor NIC: " + donor.getNic() + ". Error: " + donorResponse.getMessage());
+                    }
+
                 } catch (Exception e) {
-                    System.out.println("Validation error for row: " + e.getMessage());
+                    failedDonorRows.add(line);
+                    failedDonorMessages.add("Failed to process row: " + line + ". Error: " + e.getMessage());
                 }
             }
-        }catch (Exception e){
-
-        }finally {
-            return new DonorResponse("Failure", "Donor registration with csv failed.");
+        } catch (Exception e) {
+            throw new RuntimeException("Error processing CSV: " + e.getMessage(), e);
         }
+
+        String resultMessage = "Successfully registered " + successCount + " donors. Failed donors: " + failedDonorRows.size() + ". Failed donations: " + failedDonationRows.size();
+
+        if (!failedDonorMessages.isEmpty()) {
+            System.out.println("Failed Donors: " + failedDonorMessages);
+        }
+
+        if (!failedDonationMessages.isEmpty()) {
+            System.out.println("Failed Donations: " + failedDonationMessages);
+        }
+
+        return new DonorResponse("Completed", resultMessage, (Long) null);
     }
+
+
 
 
     public DonorAddressResponse saveAddress(UserAuthorize userAuthorize, Long donorId, DonorAddress donorAddress) {
@@ -153,7 +249,6 @@ public class DonorService {
             throw new RuntimeException("Error creating donor: " + e.getMessage(), e);
         }
     }
-
 
 
     public DonorDocumentResponse saveDocument(UserAuthorize userAuthorize, DonorDocument donorDocument) {
