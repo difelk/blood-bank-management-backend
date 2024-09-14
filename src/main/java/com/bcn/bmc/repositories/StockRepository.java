@@ -14,4 +14,10 @@ public interface StockRepository  extends JpaRepository<Stock, Long> {
     @Query("select s from Stock s where  s.organizationId = :organization AND s.bloodType = :bloodType")
     Optional<Stock> findByOrganizationIdAndBloodType(@Param("organization") long organization, @Param("bloodType") String bloodType);
 
+
+//    @Query("select s from Stock s where  s.organizationId = :organization AND s.bloodType = :bloodType")
+//    List<Stock> findStockForBloodTypeByOrganizationId(@Param("organization") long organization, @Param("bloodType") String bloodType);
+
+    @Query("select s from Stock s where  s.organizationId = :organization")
+    List<Stock> findStocksByOrganization(@Param("organization") long organization);
 }

@@ -35,27 +35,6 @@ public class HospitalAddressService {
         }
     }
 
-//    @Transactional
-//    public HospitalAddressResponse updateAddress(HospitalAddress newAddress) {
-//        try {
-//            Optional<HospitalAddress> addressOptional = hospitalAddressRepository.findById(newAddress.getId());
-//
-//            if (addressOptional.isPresent()) {
-//                HospitalAddress existingAddress = addressOptional.get();
-//                existingAddress.setStreetNumber(newAddress.getStreetNumber());
-//                existingAddress.setStreetName(newAddress.getStreetName());
-//                existingAddress.setCity(newAddress.getCity());
-//                HospitalAddress savedAddress = hospitalAddressRepository.save(existingAddress);
-//
-//                return new HospitalAddressResponse(savedAddress.getId(), "Address updated successfully");
-//            } else {
-//                return createAddress(newAddress);
-//            }
-//        } catch (Exception e) {
-//            logger.error("Failed to update address", e);
-//            return new HospitalAddressResponse(-1, "Failed to update address: " + e.getMessage());
-//        }
-//    }
 
     @Transactional
     public HospitalAddressResponse updateAddress(HospitalAddress newAddress) {

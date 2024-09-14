@@ -18,9 +18,21 @@ public class HospitalService {
 
     private final OrganizationRepository organizationRepository;
 
-    public HospitalService(HospitalRepository hospitalRepository, OrganizationRepository organizationRepository) {
+    private final HospitalAddressService hospitalAddressService;
+
+    private final HospitalDocumentService hospitalDocumentService;
+
+    private final DonationService donationService;
+
+    private final StockService stockService;
+
+    public HospitalService(HospitalRepository hospitalRepository, OrganizationRepository organizationRepository, HospitalAddressService hospitalAddressService, HospitalDocumentService hospitalDocumentService,  DonationService donationService, StockService stockService) {
         this.hospitalRepository = hospitalRepository;
         this.organizationRepository = organizationRepository;
+        this.hospitalAddressService = hospitalAddressService;
+        this.hospitalDocumentService = hospitalDocumentService;
+        this.donationService = donationService;
+        this.stockService = stockService;
     }
 
     @Transactional
@@ -41,14 +53,37 @@ public class HospitalService {
         }
     }
 
-    public List<Hospital> getAllHospitals(UserAuthorize admin) {
+    public List<HospitalDetails> getAllHospitals(UserAuthorize admin) {
+
+        List<HospitalDetails> allHospitalsDetails = new ArrayList<>();
+         List<Hospital> hospitals = new ArrayList<>();
+         HospitalAddress hospitalAddress;
+         List<HospitalDocument> hospitalDocuments;
+         List<DonationDetails> donations;
+         List<Stock> stocks;
+
+
         try {
             if (admin.getOrganization() == 1) {
-                return hospitalRepository.findAllByStatus(ActiveStatus.ACTIVE);
+                hospitals  = hospitalRepository.findAllByStatus(ActiveStatus.ACTIVE);
             }else{
-                return hospitalRepository.findAllByOrganizationId(admin.getOrganization());
+                hospitals = hospitalRepository.findAllByOrganizationId(admin.getOrganization());
             }
-//            return hospitalRepository.findAll();
+
+            if(!hospitals.isEmpty()){
+                for(Hospital hospital : hospitals){
+                    hospitalAddress = hospitalAddressService.getAddressByHospitalId(hospital.getId());
+                    hospitalDocuments = hospitalDocumentService.getHospitalDocumentsById(hospital.getId());
+                    donations = donationService.getAllDonationsForStock(hospital.getId());
+                    stocks = stockService.getAllStock(hospital.getId());
+                    allHospitalsDetails.add(new HospitalDetails(hospital, hospitalAddress, hospitalDocuments, donations, stocks));
+
+
+
+                }
+            }
+                return allHospitalsDetails;
+
         } catch (Exception e) {
             System.out.println("Error fetching all hospitals: " + e.getMessage());
             return null;
@@ -111,57 +146,6 @@ public class HospitalService {
             return new HospitalResponse(-1, "Failed to mark hospital as inactive: " + e.getMessage());
         }
     }
-
-//    public List<HospitalJoinedDetails> getAllHospitalJoinedDetails() {
-//        List<HospitalJoinedDetails> hospitalJoinedDetails = new ArrayList<>();
-//
-//        HospitalAddressService hospitalAddressService = new HospitalAddressService();
-//        HospitalDocumentService hospitalDocumentService = new HospitalDocumentService();
-//
-//        List<Hospital> hospitalBasicData = getAllHospitals();
-//        List<HospitalAddress> hospitalAddressData = hospitalAddressService.getAllAddresses();
-//        List<HospitalDocument> hospitalDocumentsData = hospitalDocumentService.getAllDocuments();
-//
-//        System.out.println("hospitalAddressData - " + hospitalAddressData.size());
-//        System.out.println("hospitalDocumentsData - " + hospitalDocumentsData.size());
-//
-//        for(Hospital hospital : hospitalBasicData){
-//
-//            for(HospitalAddress address : hospitalAddressData){
-//
-//                if(hospital.getId() == address.getHospitalId()){
-//
-//                for(HospitalDocument document : hospitalDocumentsData){
-//
-//                    HospitalJoinedDetails hospitalJoinedDetail = new HospitalJoinedDetails();
-//
-//                    if(hospital.getId() == document.getHospital().getId()){
-//                        hospitalJoinedDetail.setId(hospital.getId());
-//                        hospitalJoinedDetail.setHospitalName(hospital.getHospitalName());
-//                        hospitalJoinedDetail.setSector(hospital.getSector());
-//                        hospitalJoinedDetail.setContactNo1(hospital.getContactNo1());
-//                        hospitalJoinedDetail.setContactNo2(hospital.getContactNo2());
-//                        hospitalJoinedDetail.setStreetNumber(address.getStreetNumber());
-//                        hospitalJoinedDetail.setStreetName(address.getStreetName());
-//                        hospitalJoinedDetail.setCity(address.getCity());
-//
-//                        List<HospitalDocument> docs = new ArrayList<>();
-//
-//                        for(HospitalDocument document2 : hospitalDocumentsData){
-//                            if(hospital.getId() == document2.getHospital().getId()){
-//                                docs.add(new HospitalDocument(document2.getId(),document2.getFileName(),document2.getFileType(),document2.getFileSize(),document2.getData(),document2.getHospital()));
-//                            }
-//                        }
-//                        hospitalJoinedDetail.setHospitalDocuments(docs);
-//                        hospitalJoinedDetails.add(hospitalJoinedDetail);
-//                    }
-//
-//                }
-//                }
-//            }
-//        }
-//        return hospitalJoinedDetails;
-//    }
 
 
 }

@@ -42,7 +42,7 @@ public class HospitalController {
     }
 
     @GetMapping("/")
-    public List<Hospital> getAllHospitals(@RequestHeader("Authorization") String tokenHeader) {
+    public List<HospitalDetails> getAllHospitals(@RequestHeader("Authorization") String tokenHeader) {
         UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
         return hospitalService.getAllHospitals(userAuthorize);
     }
