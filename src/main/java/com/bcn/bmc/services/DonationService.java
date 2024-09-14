@@ -109,6 +109,17 @@ public class DonationService {
         }
     }
 
+    public List<DonationDetails> getAllDonationsForStock(long id) {
+        try {
+            List<Donation> donations = donationRepository.findAllDonationsByOrg(id);
+
+            return mapDonationsToDetails(donations);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching donation details: " + e.getMessage(), e);
+        }
+    }
+
     public List<DonationDetails> getAllDonationsByDonorId(UserAuthorize userAuthorize, long donor) {
         try {
             List<Donation> donations = userAuthorize.getOrganization() == 1
@@ -122,25 +133,24 @@ public class DonationService {
         }
     }
 
+
+
     @Transactional
     public DonationResponse updateDonation(UserAuthorize userAuthorize, Donation donation) {
         try {
             Optional<Donation> existingDonationOpt = donationRepository.findById(donation.getId());
-            if (!existingDonationOpt.isPresent()) {
+            if (existingDonationOpt.isEmpty()) {
 
                 return new DonationResponse("Failure", "Donation not found.");
             }
 
             Donation existingDonation = existingDonationOpt.get();
 
-
             List<Donation> donorDonations = donationRepository.findByDonor(existingDonation.getDonor());
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(donation.getDonationDate());
             calendar.add(Calendar.MONTH, 3);
             Date futureDateLimit = calendar.getTime();
-
-
 
             for (Donation d : donorDonations) {
                 if (!d.getId().equals(donation.getId())) {
@@ -150,14 +160,42 @@ public class DonationService {
                 }
             }
 
+            boolean quantityChanged = !existingDonation.getQuantity().equals(donation.getQuantity());
+            boolean bloodTypeChanged = !existingDonation.getBloodType().equals(donation.getBloodType());
+            double oldQty = existingDonation.getQuantity();
+            long organization =existingDonation.getOrganizationId();
 
 
+                    System.out.println("is qty change ? " + quantityChanged);
+            System.out.println("is blood type  change ? " + bloodTypeChanged);
+            System.out.println("organization ? " + organization);
 
             existingDonation.setDonationDate(donation.getDonationDate());
             existingDonation.setQuantity(donation.getQuantity());
             existingDonation.setBloodType(donation.getBloodType());
 
             donationRepository.save(existingDonation);
+
+            if (quantityChanged || bloodTypeChanged) {
+                try {
+                    double quantityDifference = donation.getQuantity() - oldQty;
+
+                    System.out.println("oldQty: " + oldQty);
+                    System.out.println("donation.getQuantity(): " + donation.getQuantity());
+                    System.out.println("qty differences: " + quantityDifference);
+
+                    if (quantityDifference != 0) {
+                        if (bloodTypeChanged) {
+                            stockService.updateStock(existingDonation.getOrganizationId(), existingDonation.getBloodType(), -oldQty);
+                            stockService.updateStock(donation.getOrganizationId(), donation.getBloodType(), donation.getQuantity());
+                        } else {
+                            stockService.updateStock(organization, existingDonation.getBloodType(), quantityDifference);
+                        }
+                    }
+                } catch (Exception stockUpdateException) {
+                    return new DonationResponse("Partial Success", "Donation updated successfully, but failed to update stock. Error: " + stockUpdateException.getMessage());
+                }
+            }
 
             return new DonationResponse("Success", "Donation updated successfully.");
 
