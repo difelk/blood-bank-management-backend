@@ -5,6 +5,7 @@ import com.bcn.bmc.repositories.DonationRepositories;
 import com.bcn.bmc.repositories.DonorRepository;
 import com.bcn.bmc.repositories.OrganizationRepository;
 import com.bcn.bmc.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,13 +16,16 @@ public class DonationService {
 
     private final CommonService commonService;
     private final DonationRepositories donationRepository;
+    private final StockService stockService;
 
     @Autowired
-    public DonationService(CommonService commonService, DonationRepositories donationRepository) {
+    public DonationService(CommonService commonService, DonationRepositories donationRepository, StockService stockService) {
         this.commonService = commonService;
         this.donationRepository = donationRepository;
+        this.stockService = stockService;
     }
 
+    @Transactional
     public DonationResponse createDonation(UserAuthorize userAuthorize, Donation donation) {
         try {
 
@@ -33,7 +37,6 @@ public class DonationService {
             Date donationDate = new Date();
 
             Optional<Donation> lastDonation = donationRepository.findLastDonationByDonor(donation.getDonor());
-
             if (lastDonation.isPresent()) {
                 Calendar threeMonthsAgo = Calendar.getInstance();
                 threeMonthsAgo.add(Calendar.MONTH, -3);
@@ -48,9 +51,18 @@ public class DonationService {
             donation.setOrganizationId((long) userAuthorize.getOrganization());
             Donation newDonation = donationRepository.save(donation);
 
-
             if (newDonation.getId() > 0) {
-                return new DonationResponse("Success", "Donor registered successfully.");
+                try {
+                    Stock stock =  stockService.addStock(
+                            donation.getOrganizationId(),
+                            donation.getBloodType(),
+                            donation.getQuantity()
+                    );
+                    return new DonationResponse("Success", "Donor registered successfully.");
+                } catch (Exception stockUpdateException) {
+
+                    return new DonationResponse("Partial Success", "Donation registered successfully, but failed to update stock. Error: " + stockUpdateException.getMessage());
+                }
             } else {
                 return new DonationResponse("Failure", "Donor registration failed.");
             }
@@ -59,8 +71,6 @@ public class DonationService {
             throw new RuntimeException("Error creating donation: " + e.getMessage(), e);
         }
     }
-
-
 
     private List<DonationDetails> mapDonationsToDetails(List<Donation> donations) {
         List<DonationDetails> donationDetails = new ArrayList<>();
