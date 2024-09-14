@@ -45,4 +45,28 @@ public class DonationController {
         UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
         return donationService.getAllDonationsByDonorId(userAuthorize, donor);
     }
+
+    @PutMapping("/update")
+    public ResponseEntity<DonationResponse> updateDonation(@RequestHeader("Authorization") String tokenHeader, @RequestBody Donation donation) {
+        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        try {
+            DonationResponse donationResponse = donationService.updateDonation(userAuthorize, donation);
+            return new ResponseEntity<>(donationResponse, HttpStatus.OK);
+        } catch (Exception e) {
+            DonationResponse response = new DonationResponse("FAILURE", "Failed to update donation: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @DeleteMapping("/delete/{donationId}")
+    public ResponseEntity<DonationResponse> deleteDonation(@PathVariable Long donationId) {
+        try {
+            DonationResponse donationResponse = donationService.deleteDonation(donationId);
+            return new ResponseEntity<>(donationResponse, HttpStatus.OK);
+        } catch (Exception e) {
+            DonationResponse response = new DonationResponse("FAILURE", "Failed to delete donation: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+
 }
