@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,6 +46,17 @@ public class HospitalController {
     public List<HospitalDetails> getAllHospitals(@RequestHeader("Authorization") String tokenHeader) {
         UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
         return hospitalService.getAllHospitals(userAuthorize);
+    }
+
+
+    @GetMapping("/organization/details")
+    public HospitalDetails getHospital(@RequestHeader("Authorization") String tokenHeader) {
+        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        if (userAuthorize.getOrganization() > 0) {
+            return hospitalService.getHospitalDetails(userAuthorize);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized Access");
+        }
     }
 
     @GetMapping("/{id}")

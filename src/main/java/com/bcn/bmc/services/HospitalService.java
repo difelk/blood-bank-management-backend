@@ -4,8 +4,10 @@ import com.bcn.bmc.enums.ActiveStatus;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.HospitalRepository;
 import com.bcn.bmc.repositories.OrganizationRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -77,9 +79,6 @@ public class HospitalService {
                     donations = donationService.getAllDonationsForStock(hospital.getId());
                     stocks = stockService.getAllStock(hospital.getId());
                     allHospitalsDetails.add(new HospitalDetails(hospital, hospitalAddress, hospitalDocuments, donations, stocks));
-
-
-
                 }
             }
                 return allHospitalsDetails;
@@ -89,6 +88,39 @@ public class HospitalService {
             return null;
         }
     }
+
+
+    public HospitalDetails getHospitalDetails(UserAuthorize admin) {
+        HospitalDetails hospitalDetails = null;
+
+        try {
+            long organizationId = (long) admin.getOrganization();
+
+            Hospital hospital = hospitalRepository.findByOrganizationId(organizationId);
+            if (hospital == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Hospital not found");
+            }
+
+            HospitalAddress hospitalAddress = hospitalAddressService.getAddressByHospitalId(organizationId);
+//            if (hospitalAddress == null) {
+//                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Hospital address not found");
+//            }
+
+            List<HospitalDocument> hospitalDocuments = hospitalDocumentService.getHospitalDocumentsById(organizationId);
+            List<DonationDetails> donations = donationService.getAllDonationsForStock(organizationId);
+            List<Stock> stocks = stockService.getAllStock(organizationId);
+
+            hospitalDetails = new HospitalDetails(hospital, hospitalAddress, hospitalDocuments, donations, stocks);
+
+        } catch (NullPointerException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while fetching hospital details", e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred, " + e.getMessage());
+        }
+
+        return hospitalDetails;
+    }
+
 
     public Hospital getHospitalById(long id) {
         try {
