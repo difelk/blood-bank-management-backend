@@ -1,0 +1,49 @@
+CREATE TABLE events (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    event_name VARCHAR(255) UNIQUE NOT NULL,
+    event_start_date DATETIME,
+    event_end_date DATETIME,
+    event_location VARCHAR(255),
+    event_status ENUM('IN_PROGRESS', 'DONE', 'HOLD', 'PENDING') NOT NULL,
+    organization_name VARCHAR(255),
+    contact_no VARCHAR(50),
+    status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+    created_by BIGINT,
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
+ALTER TABLE events ADD COLUMN event_start_date DATE;
+ALTER TABLE events ADD COLUMN event_end_date DATE;
+
+ALTER TABLE events
+    ADD COLUMN event_start_time TIME,
+    ADD COLUMN event_end_time TIME;
+
+
+CREATE TABLE event_address (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    event_id BIGINT,
+    street_number VARCHAR(50),
+    street_name VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(100),
+    zip_code VARCHAR(20),
+    FOREIGN KEY (event_id) REFERENCES events(id)
+);
+
+
+CREATE TABLE event_document (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    file_name VARCHAR(255) NOT NULL,
+    file_type VARCHAR(50) NOT NULL,
+    file_size BIGINT NOT NULL,
+    data LONGBLOB NOT NULL,
+    event_id BIGINT,
+    FOREIGN KEY (event_id) REFERENCES events(id)
+);
+
+
+select * from events;
+select * from event_address;
+select * from event_document;
