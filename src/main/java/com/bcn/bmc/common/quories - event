@@ -13,9 +13,6 @@ CREATE TABLE events (
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
-ALTER TABLE events ADD COLUMN event_start_date DATE;
-ALTER TABLE events ADD COLUMN event_end_date DATE;
-
 ALTER TABLE events
     ADD COLUMN event_start_time TIME,
     ADD COLUMN event_end_time TIME;
