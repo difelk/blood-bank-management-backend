@@ -75,7 +75,8 @@ public class DonationService {
                     Stock stock = stockService.addStock(
                             donation.getOrganizationId(),
                             donation.getBloodType(),
-                            donation.getQuantity()
+                            donation.getQuantity(),
+                            donation.getDonor()
                     );
                     return new DonationResponse("Success", "Donation added successfully.");
                 } catch (Exception stockUpdateException) {
@@ -184,7 +185,7 @@ public class DonationService {
             long organization =existingDonation.getOrganizationId();
 
 
-                    System.out.println("is qty change ? " + quantityChanged);
+            System.out.println("is qty change ? " + quantityChanged);
             System.out.println("is blood type  change ? " + bloodTypeChanged);
             System.out.println("organization ? " + organization);
 
@@ -204,10 +205,10 @@ public class DonationService {
 
                     if (quantityDifference != 0) {
                         if (bloodTypeChanged) {
-                            stockService.updateStock(existingDonation.getOrganizationId(), existingDonation.getBloodType(), -oldQty);
-                            stockService.updateStock(donation.getOrganizationId(), donation.getBloodType(), donation.getQuantity());
+                            stockService.updateStock(existingDonation.getOrganizationId(), existingDonation.getBloodType(), -oldQty, donation.getDonor());
+                            stockService.updateStock(donation.getOrganizationId(), donation.getBloodType(), donation.getQuantity(), donation.getDonor());
                         } else {
-                            stockService.updateStock(organization, existingDonation.getBloodType(), quantityDifference);
+                            stockService.updateStock(organization, existingDonation.getBloodType(), quantityDifference, donation.getDonor());
                         }
                     }
                 } catch (Exception stockUpdateException) {
