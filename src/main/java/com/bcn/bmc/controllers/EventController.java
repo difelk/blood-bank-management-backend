@@ -57,13 +57,34 @@ public class EventController {
         return ResponseEntity.ok(eventService.createEventAddress(userAuthorize, eventId, eventAddress));
     }
 
-    @PostMapping("/documents/{eventId}")
-    public ResponseEntity<EventDocumentResponse> createEventDocument(@RequestHeader("Authorization") String tokenHeader,
-                                                                     @PathVariable Long eventId,
-                                                                     @RequestBody EventDocument eventDocument) {
-        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
-        return ResponseEntity.ok(eventService.createEventDocument(userAuthorize, eventId, eventDocument));
+//    @PostMapping("/documents/{eventId}")
+//    public ResponseEntity<EventDocumentResponse> createEventDocument(
+//            @RequestHeader("Authorization") String tokenHeader,
+//            @PathVariable Long eventId,
+//            @RequestPart("eventDocument") EventDocument eventDocument,
+//            @RequestParam("file") MultipartFile file) {
+//
+//        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+//        try {
+//            EventDocumentResponse response = eventService.createEventDocument(userAuthorize, eventId, eventDocument, file);
+//            return ResponseEntity.ok(response);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(new EventDocumentResponse("Error", "Failed to create event document: " + e.getMessage()));
+//        }
+//    }
+
+    @PostMapping("/documents/upload")
+    public ResponseEntity<EventDocument> uploadFile(@RequestParam("file") MultipartFile file,
+                                                       @RequestParam("eventId") Long eventId) {
+        try {
+            EventDocument savedDocument = eventService.storeFile(file, eventId);
+            return new ResponseEntity<>(savedDocument, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
+
 
     @PutMapping("/address/{eventId}")
     public ResponseEntity<EventAddressResponse> updateEventAddress(
@@ -130,6 +151,17 @@ public class EventController {
     @DeleteMapping("/{eventId}")
     public ResponseEntity<EventResponse> deleteEventById(@PathVariable Long eventId) {
         return ResponseEntity.ok(eventService.deleteEventById(eventId));
+    }
+
+    @GetMapping("/address/{eventId}")
+    public EventAddress getAddressByHospital(@PathVariable Long eventId) {
+        return eventService.getAddressByEventId(eventId);
+    }
+
+    @GetMapping("/name/{name}")
+    public Event getEventByName(@PathVariable String name) {
+        System.out.println("Fetching event by name: " + name);
+        return eventService.getEventByName(name);
     }
 
 }
