@@ -24,6 +24,9 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
     List<Hospital> findAllByOrganizationId(@Param("organization") int organization);
 
     @Query("select h from Hospital h where  h.id = :organization AND h.status <> 'INACTIVE'")
+    Hospital findAllByOrganizationIdLong(@Param("organization") long organization);
+
+    @Query("select h from Hospital h where  h.id = :organization AND h.status <> 'INACTIVE'")
     Hospital findByOrganizationId(@Param("organization") long organization);
 
 //    @Query("SELECT new com.bcn.bmc.models.HospitalJoinedDetails(" +
