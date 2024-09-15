@@ -157,23 +157,34 @@ public class DonationService {
     public DonationResponse updateDonation(UserAuthorize userAuthorize, Donation donation) {
         try {
             Optional<Donation> existingDonationOpt = donationRepository.findById(donation.getId());
-            if (existingDonationOpt.isEmpty()) {
-
+            if (!existingDonationOpt.isPresent()) {
                 return new DonationResponse("Failure", "Donation not found.");
             }
 
             Donation existingDonation = existingDonationOpt.get();
 
-            List<Donation> donorDonations = donationRepository.findByDonor(existingDonation.getDonor());
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(donation.getDonationDate());
-            calendar.add(Calendar.MONTH, 3);
-            Date futureDateLimit = calendar.getTime();
 
-            for (Donation d : donorDonations) {
-                if (!d.getId().equals(donation.getId())) {
-                    if (d.getDonationDate().before(futureDateLimit)) {
-                        return new DonationResponse("Failure", "Cannot update donation within 3 months of a previous donation.");
+            if (!existingDonation.getDonationDate().equals(donation.getDonationDate())) {
+
+                List<Donation> donorDonations = donationRepository.findByDonor(existingDonation.getDonor());
+
+                for (Donation d : donorDonations) {
+
+                    if (!d.getId().equals(donation.getId())) {
+
+                        Calendar calendarBefore = Calendar.getInstance();
+                        calendarBefore.setTime(d.getDonationDate());
+                        calendarBefore.add(Calendar.MONTH, -3);
+
+                        Calendar calendarAfter = Calendar.getInstance();
+                        calendarAfter.setTime(d.getDonationDate());
+                        calendarAfter.add(Calendar.MONTH, 3);
+
+
+                        if (donation.getDonationDate().after(calendarBefore.getTime())
+                                && donation.getDonationDate().before(calendarAfter.getTime())) {
+                            return new DonationResponse("Failure", "Cannot update donation: A donor can only donate once every 3 months.");
+                        }
                     }
                 }
             }
@@ -184,7 +195,7 @@ public class DonationService {
             long organization =existingDonation.getOrganizationId();
 
 
-                    System.out.println("is qty change ? " + quantityChanged);
+            System.out.println("is qty change ? " + quantityChanged);
             System.out.println("is blood type  change ? " + bloodTypeChanged);
             System.out.println("organization ? " + organization);
 
