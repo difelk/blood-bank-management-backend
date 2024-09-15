@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import java.sql.Time;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Date;
 
 @Entity
@@ -26,10 +27,10 @@ public class Event {
     private LocalDate eventEndDate;
 
     @Column(name = "event_start_time")
-    private Time eventStartTime;
+    private LocalTime eventStartTime;
 
     @Column(name = "event_end_time")
-    private Time eventEndTime;
+    private LocalTime eventEndTime;
 
     @Column(name = "event_location")
     private String eventLocation;
@@ -143,19 +144,19 @@ public class Event {
         this.createdDate = createdDate;
     }
 
-    public Time getEventStartTime() {
+    public LocalTime getEventStartTime() {
         return eventStartTime;
     }
 
-    public void setEventStartTime(Time eventStartTime) {
+    public void setEventStartTime(LocalTime eventStartTime) {
         this.eventStartTime = eventStartTime;
     }
 
-    public Time getEventEndTime() {
+    public LocalTime getEventEndTime() {
         return eventEndTime;
     }
 
-    public void setEventEndTime(Time eventEndTime) {
+    public void setEventEndTime(LocalTime eventEndTime) {
         this.eventEndTime = eventEndTime;
     }
 }

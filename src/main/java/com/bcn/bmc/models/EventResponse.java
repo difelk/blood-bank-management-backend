@@ -4,9 +4,24 @@ public class EventResponse {
     private String status;
     private String message;
 
+    private Long eventId;
+
     public EventResponse(String status, String message) {
         this.status = status;
         this.message = message;
+    }
+    public EventResponse(String status, String message, Long eventId) {
+        this.status = status;
+        this.message = message;
+        this.eventId = eventId;
+    }
+
+    public Long getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(Long eventId) {
+        this.eventId = eventId;
     }
 
     public String getStatus() {

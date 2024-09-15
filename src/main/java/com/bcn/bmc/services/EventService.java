@@ -9,8 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -45,10 +47,19 @@ public class EventService {
             event.setCreatedBy(createdByUser);
             event.setCreatedDate(LocalDate.now());
             event.setStatus(ActiveStatus.ACTIVE);
+            event.setEventStatus(EventStatus.PENDING);
 
 
             Event newEvent = eventRepository.save(event);
-            return new EventResponse("Success", "Event created successfully.");
+            System.out.println("newEvent.getId(): "+ newEvent.getId());
+
+
+            if (newEvent.getId() > 0) {
+                return new EventResponse("Success", "Event created successfully.", newEvent.getId());
+            } else {
+                return new EventResponse("Failure", "Event registration failed.");
+            }
+
         } catch (Exception e) {
             throw new RuntimeException("Error creating event: " + e.getMessage(), e);
         }
@@ -70,7 +81,7 @@ public class EventService {
             existingEvent.setEventStatus(updatedEvent.getEventStatus());
             existingEvent.setContactNo(updatedEvent.getContactNo());
             eventRepository.save(existingEvent);
-            return new EventResponse("Success", "Event updated successfully.");
+            return new EventResponse("Success", "Event updated successfully.", existingEvent.getId());
         } catch (Exception e) {
             throw new RuntimeException("Error updating event: " + e.getMessage(), e);
         }
@@ -104,18 +115,20 @@ public class EventService {
 
 
     @Transactional
-    public EventDocumentResponse createEventDocument(UserAuthorize userAuthorize, Long eventId, EventDocument eventDocument) {
-        try {
-            Event event = eventRepository.findById(eventId)
-                    .orElseThrow(() -> new RuntimeException("Event not found."));
+    public EventDocument storeFile(MultipartFile file, Long eventId) throws IOException {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid hospital ID"));
 
-            eventDocument.setEvent(event);
-            eventDocumentRepository.save(eventDocument);
-            return new EventDocumentResponse("Success", "Event document created successfully.");
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating event document: " + e.getMessage(), e);
-        }
+        EventDocument eventDocument = new EventDocument();
+        eventDocument.setFileName(file.getOriginalFilename());
+        eventDocument.setFileType(file.getContentType());
+        eventDocument.setFileSize(file.getSize());
+        eventDocument.setData(file.getBytes());
+        eventDocument.setEvent(event);
+
+        return eventDocumentRepository.save(eventDocument);
     }
+
 
 
 
@@ -125,7 +138,7 @@ public class EventService {
             Event event = eventRepository.findById(eventId)
                     .orElseThrow(() -> new RuntimeException("Event not found"));
 
-            EventAddress existingAddress = eventAddressRepository.findById(eventAddress.getId())
+            EventAddress existingAddress = eventAddressRepository.findById(eventId)
                     .orElseThrow(() -> new RuntimeException("Event address not found"));
 
             existingAddress.setStreetNumber(eventAddress.getStreetNumber());
@@ -139,9 +152,14 @@ public class EventService {
             return eventAddressRepository.save(existingAddress);
 
         } catch (RuntimeException e) {
+
+            System.err.println("Error updating event address: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Error updating event address: " + e.getMessage(), e);
         }
     }
+
+
 
 
 
@@ -224,6 +242,24 @@ public class EventService {
             return new EventResponse("Success", "Event marked as inactive successfully.");
         } catch (Exception e) {
             throw new RuntimeException("Error marking event as inactive: " + e.getMessage(), e);
+        }
+    }
+
+    public EventAddress getAddressByEventId(Long eventId) {
+        try {
+            return eventAddressRepository.findByEventId(eventId).stream().findFirst().orElse(null);
+        } catch (Exception e) {
+            System.out.println("Error finding address by event ID: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public Event getEventByName(String eventName) {
+        try {
+            return eventRepository.findByEventName(eventName).orElse(null);
+        } catch (Exception e) {
+            System.out.println("Error fetching event by name: " + e.getMessage());
+            return null;
         }
     }
 }
