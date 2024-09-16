@@ -101,9 +101,6 @@ public class StockService {
                     String bloodType = bloodTypes.get(i);
                     double requiredQty = quantities.get(i);
 
-                    System.out.println("bloodTypes.get(i): " + bloodType);
-                    System.out.println("quantities.get(i): " +  requiredQty);
-
                     System.out.println("bloodTypes from request: " + bloodType + " blood type of stock: " + stock.getBloodType());
 
                     if (Objects.equals(stock.getBloodType().replace(" ", ""), bloodType.replace(" ", "")) && stock.getQuantity() > requiredQty) {
