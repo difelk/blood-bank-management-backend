@@ -36,7 +36,6 @@ public class DonationController {
     @GetMapping("/")
     public List<DonationDetails> getAllDonations(@RequestHeader("Authorization") String tokenHeader) {
         UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
-        System.out.println("called get all donations in controller");
         return donationService.getAllDonations(userAuthorize);
     }
 

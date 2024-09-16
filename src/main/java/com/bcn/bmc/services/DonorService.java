@@ -367,12 +367,13 @@ public class DonorService {
     }
 
     public List<Donor> getAllDonors(UserAuthorize admin) {
+
         try {
-            if (admin.getOrganization() == 1) {
+//            if (admin.getOrganization() == 1) {
                 return donorRepository.findAllByStatus(ActiveStatus.ACTIVE);
-            }else{
-                return donorRepository.findAllByOrganizationId(admin.getOrganization());
-            }
+//            }else{
+//                return donorRepository.findAllByOrganizationId(admin.getOrganization());
+//            }
         } catch (Exception e) {
             System.out.println("Error fetching all donors: " + e.getMessage());
             return null;

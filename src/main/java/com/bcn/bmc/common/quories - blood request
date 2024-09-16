@@ -1,0 +1,24 @@
+CREATE TABLE blood_requests (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    requestor_organization_id BIGINT NOT NULL,  -- Organization making the request
+    provider_organization_id BIGINT NOT NULL,  -- Organization providing the blood
+    request_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fulfillment_status ENUM('PENDING', 'FULFILLED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
+    FOREIGN KEY (requestor_organization_id) REFERENCES organizations(id),
+    FOREIGN KEY (provider_organization_id) REFERENCES organizations(id)
+);
+
+
+
+CREATE TABLE blood_request_details (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    blood_request_id BIGINT NOT NULL,  -- Reference to the main request
+    blood_type VARCHAR(10) NOT NULL,   -- Blood type requested
+    quantity DECIMAL(10,2) NOT NULL,   -- Quantity requested
+    FOREIGN KEY (blood_request_id) REFERENCES blood_requests(id) ON DELETE CASCADE
+);
+
+
+select * from blood_requests;
+
+select * from blood_request_details;
