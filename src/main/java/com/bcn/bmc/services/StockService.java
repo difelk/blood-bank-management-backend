@@ -1,14 +1,12 @@
 package com.bcn.bmc.services;
 
 import com.bcn.bmc.enums.TransactionType;
-import com.bcn.bmc.models.Stock;
-import com.bcn.bmc.models.StockTransaction;
+import com.bcn.bmc.models.*;
+import com.bcn.bmc.repositories.HospitalRepository;
 import com.bcn.bmc.repositories.StockRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class StockService {
@@ -16,9 +14,12 @@ public class StockService {
     private final StockRepository stockRepository;
     private final StockTransactionService stockTransactionService;
 
-    public StockService(StockRepository stockRepository, StockTransactionService stockTransactionService) {
+    private final HospitalRepository hospitalRepository;
+
+    public StockService(StockRepository stockRepository, StockTransactionService stockTransactionService, HospitalRepository hospitalRepository) {
         this.stockRepository = stockRepository;
         this.stockTransactionService = stockTransactionService;
+        this.hospitalRepository = hospitalRepository;
     }
 
     public Optional<Stock> getStockByOrganizationAndBloodType(Long organizationId, String bloodType) {
@@ -52,7 +53,7 @@ public class StockService {
     }
 
 
-    public void updateStock(Long organizationId, String bloodType, Double quantityDifference, Long  donorId) {
+    public void updateStock(Long organizationId, String bloodType, Double quantityDifference, Long donorId) {
         try {
             Optional<Stock> stockOptional = getStockByOrganizationAndBloodType(organizationId, bloodType);
             System.out.println("is there a stock for this ? " + stockOptional.isPresent());
@@ -84,6 +85,45 @@ public class StockService {
             throw new RuntimeException("Error while adding stock: " + e.getMessage());
         }
     }
+
+    public List<KeyValue> getHospitalsWithMatchingStock(UserAuthorize admin, List<String> bloodTypes, List<Double> quantities) {
+        List<Stock> stocks = stockRepository.findStockByBloodTypeFromOutsideOrg(admin.getOrganization());
+        List<Hospital> hospitals = hospitalRepository.findAll();
+        List<KeyValue> hospitalsWithAvailableQty = new ArrayList<>();
+
+        if (bloodTypes.size() != quantities.size()) {
+            throw new IllegalArgumentException("Blood types and quantities must match in size.");
+        }
+
+        if (!stocks.isEmpty()) {
+            for (Stock stock : stocks) {
+                for (int i = 0; i < bloodTypes.size(); i++) {
+                    String bloodType = bloodTypes.get(i);
+                    double requiredQty = quantities.get(i);
+
+                    System.out.println("bloodTypes.get(i): " + bloodType);
+                    System.out.println("quantities.get(i): " +  requiredQty);
+
+                    System.out.println("bloodTypes from request: " + bloodType + " blood type of stock: " + stock.getBloodType());
+
+                    if (Objects.equals(stock.getBloodType().replace(" ", ""), bloodType.replace(" ", "")) && stock.getQuantity() > requiredQty) {
+                        hospitals.stream()
+                                .filter(hospital -> Objects.equals(hospital.getId(), stock.getOrganizationId()))
+                                .findFirst()
+                                .ifPresent(hospital -> hospitalsWithAvailableQty.add(
+                                        new KeyValue(stock.getOrganizationId(), hospital.getHospitalName())
+                                ));
+                    }
+                }
+            }
+        }
+
+        return hospitalsWithAvailableQty;
+    }
+
+
+
+
 
 
     public List<Stock> getAllStock(long id) {

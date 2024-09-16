@@ -1,10 +1,9 @@
 package com.bcn.bmc.controllers;
 
 import com.bcn.bmc.helper.TokenData;
-import com.bcn.bmc.models.StockHistory;
-import com.bcn.bmc.models.StockTransaction;
-import com.bcn.bmc.models.User;
-import com.bcn.bmc.models.UserAuthorize;
+import com.bcn.bmc.models.*;
+import com.bcn.bmc.services.BloodRequestService;
+import com.bcn.bmc.services.StockService;
 import com.bcn.bmc.services.StockTransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +20,11 @@ public class StockController {
     @Autowired
     StockTransactionService stockTransactionService;
     @Autowired
+    StockService stockService;
+
+    @Autowired
+    BloodRequestService bloodRequestService;
+    @Autowired
     private TokenData tokenHelper;
 
     @GetMapping("/history")
@@ -30,5 +34,18 @@ public class StockController {
         return stockTransactionService.getHospitalTransactionHistory(userAuthorize);
     }
 
+
+    @GetMapping("/matching-hospitals")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public List<KeyValue> getHospitalsWithMatchingStock(@RequestHeader("Authorization") String tokenHeader, @RequestParam("bloodType") List<String> bloodTypes, @RequestParam("qty") List<Double> quantities ) {
+        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        return stockService.getHospitalsWithMatchingStock(userAuthorize, bloodTypes, quantities);
+    }
+
+    @PostMapping(path = "/request")
+    public CustomResponse requestStock(@RequestHeader("Authorization") String tokenHeader, @RequestBody List<HospitalStockRequest> hospitalStockRequests){
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+        return bloodRequestService.requestBlood(userAuthorize, hospitalStockRequests);
+    }
 
 }
