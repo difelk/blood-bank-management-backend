@@ -48,4 +48,11 @@ public class StockController {
         return bloodRequestService.requestBlood(userAuthorize, hospitalStockRequests);
     }
 
+    @GetMapping("/requests")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public List<BloodRequestAllDetails> getAllRequestStock(@RequestHeader("Authorization") String tokenHeader) {
+        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        return bloodRequestService.getAllRequestStock(userAuthorize);
+    }
+
 }

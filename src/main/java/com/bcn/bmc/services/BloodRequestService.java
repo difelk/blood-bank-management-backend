@@ -6,10 +6,12 @@ import com.bcn.bmc.enums.Status;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.BloodRequestDetailRepository;
 import com.bcn.bmc.repositories.BloodRequestRepository;
+import com.bcn.bmc.repositories.HospitalRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,9 +21,12 @@ public class BloodRequestService {
 
     private final BloodRequestDetailRepository bloodRequestDetailRepository;
 
-    public BloodRequestService(BloodRequestRepository bloodRequestRepository, BloodRequestDetailRepository bloodRequestDetailRepository) {
+    private final HospitalRepository hospitalRepository;
+
+    public BloodRequestService(BloodRequestRepository bloodRequestRepository, BloodRequestDetailRepository bloodRequestDetailRepository, HospitalRepository hospitalRepository) {
         this.bloodRequestRepository = bloodRequestRepository;
         this.bloodRequestDetailRepository = bloodRequestDetailRepository;
+        this.hospitalRepository = hospitalRepository;
     }
 
 
@@ -69,6 +74,45 @@ public class BloodRequestService {
                 throw new IllegalArgumentException("Invalid quantity format for blood type: " + bloodType);
             }
         }
+    }
+
+
+    public List<BloodRequestAllDetails> getAllRequestStock(UserAuthorize admin) {
+        List<BloodRequestAllDetails> bloodRequestAllDetails = new ArrayList<>();
+
+        try {
+            List<BloodRequest> bloodRequests = bloodRequestRepository.findAllByOrgId(admin.getOrganization());
+
+            if (!bloodRequests.isEmpty()) {
+                for (BloodRequest bloodRequest : bloodRequests) {
+                    Hospital hospital = hospitalRepository.findAllByOrganizationIdLong(bloodRequest.getProviderOrganizationId());
+
+                    if (hospital == null) {
+                        continue;
+                    }
+
+                    List<BloodRequestDetail> bloodRequestDetails = bloodRequestDetailRepository.findByBloodRequestId(bloodRequest.getId());
+                    List<BloodKeyValue> bloodKeyValues = new ArrayList<>();
+
+                    if (!bloodRequestDetails.isEmpty()) {
+                        for (BloodRequestDetail bloodRequestDetail : bloodRequestDetails) {
+                            bloodKeyValues.add(new BloodKeyValue(bloodRequestDetail.getBloodType(), bloodRequestDetail.getQuantity()));
+                        }
+                    }
+                    bloodRequestAllDetails.add(new BloodRequestAllDetails(
+                            bloodRequest.getId(),
+                            new KeyValue(hospital.getId(), hospital.getHospitalName()),
+                            bloodRequest.getFulfillmentStatus(),
+                            bloodRequest.getRequestDate(),
+                            null,
+                            bloodKeyValues
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bloodRequestAllDetails;
     }
 
 
