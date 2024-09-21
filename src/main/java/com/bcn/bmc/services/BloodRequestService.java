@@ -141,7 +141,7 @@ public class BloodRequestService {
                     } else if (bloodKeyValue.getValue() <= 0) {
                         return new CustomResponse(-1, "Request Update Failed", "bcn-update_failed_invalid_date", Status.FAILED);
                     } else {
-                        int  effectedRow = bloodRequestDetailRepository.updateDetailsByIdAndBloodType(bloodKeyValue.getId(), bloodKeyValue.getKey(), bloodKeyValue.getValue());
+                        int effectedRow = bloodRequestDetailRepository.updateDetailsByIdAndBloodType(bloodKeyValue.getId(), bloodKeyValue.getKey(), bloodKeyValue.getValue());
                     }
                 }
                 return new CustomResponse(0, "Request Update Successful", "bcn-update-success", Status.SUCCESS);
@@ -152,6 +152,26 @@ public class BloodRequestService {
         }
     }
 
+    public CustomResponse deleteStockRequestById(UserAuthorize admin, long id) {
+        try {
+            List<BloodRequestDetail> bloodRequestDetails = bloodRequestDetailRepository.findByBloodRequestId(id);
+
+            if (bloodRequestDetails.isEmpty()) {
+                return new CustomResponse(-1, "Request Delete Failed: No associated data found.", "bcn-delete_failed_no_data", Status.FAILED);
+            }
+
+            int affectedCount = bloodRequestRepository.deleteByRequestId(bloodRequestDetails.get(0).getBloodRequest(), FulfillmentStatus.CANCELED);
+
+            if (affectedCount > 0) {
+                return new CustomResponse(0, "Request Delete Successful", "bcn-delete-success", Status.SUCCESS);
+            } else {
+                return new CustomResponse(-1, "Request Delete Failed: Database error occurred.", "bcn-delete-failed_db_error", Status.FAILED);
+            }
+
+        } catch (Exception e) {
+            return new CustomResponse(-1, "Request Delete Failed: " + e.getMessage(), "bcn-delete_failed", Status.FAILED);
+        }
+    }
 
 
 }
