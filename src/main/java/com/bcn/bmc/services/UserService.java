@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -155,10 +156,13 @@ public class UserService {
 
     public List<User> getAllUsers(UserAuthorize admin) {
         try {
-            System.out.println("User org: "+ admin.getOrganization());
+            System.out.println("User org: "+ admin.getUserRole());
             if(admin.getOrganization() == 1){
                 return userRepository.findAllActiveUsers();
-            }else{
+            }else if(Objects.equals(admin.getUserRole(), "USER")){
+                return userRepository.findAllActiveUsersByOrganizationAndUserId(admin.getOrganization(), admin.getUserId());
+            }
+            else{
                 return userRepository.findAllActiveUsersByOrganization(admin.getOrganization());
             }
 

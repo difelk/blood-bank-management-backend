@@ -55,6 +55,9 @@ CREATE TABLE users (
     FOREIGN KEY (organization_id) REFERENCES organizations(id)
 );
 
+UPDATE users
+SET user_role = 'SUPER_ADMIN'
+WHERE id = 1;
 
 CREATE TABLE user_documents (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

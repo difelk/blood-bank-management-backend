@@ -21,6 +21,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("select u from User u where  u.organization = :organization AND u.status <> 'INACTIVE'")
     List<User> findAllActiveUsersByOrganization(@Param("organization") int organization);
+
+    @Query("select u from User u where  u.organization = :organization AND u.id = :id AND u.status <> 'INACTIVE'")
+    List<User> findAllActiveUsersByOrganizationAndUserId(@Param("organization") int organization, @Param("id") long id);
     @Query("select u from User u where u.nic =?1")
     Optional<User> findUserByNic(@Param("nic") String nic);
     @Query("select u from User u where u.organization = :organization AND u.nic = :nic")
