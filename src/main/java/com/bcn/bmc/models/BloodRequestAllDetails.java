@@ -7,8 +7,18 @@ import java.util.Date;
 import java.util.List;
 
 public class BloodRequestAllDetails {
+    public List<Long> getRequestedId() {
+        return requestedId;
+    }
+
+    public void setRequestedId(List<Long> requestedId) {
+        this.requestedId = requestedId;
+    }
 
     private long id;
+
+    private List<Long> requestedId;
+
 
     private KeyValue hospital;
 
@@ -19,13 +29,14 @@ public class BloodRequestAllDetails {
         return id;
     }
     public BloodRequestAllDetails(){}
-    public BloodRequestAllDetails(long id, KeyValue hospital, FulfillmentStatus status, LocalDateTime requestedDate, LocalDateTime receiveDate, List<BloodKeyValue> bloodGroups) {
+    public BloodRequestAllDetails(long id,List<Long> requestedId, KeyValue hospital, FulfillmentStatus status, LocalDateTime requestedDate, LocalDateTime receiveDate, List<BloodKeyValue> bloodGroups) {
         this.id = id;
         this.hospital = hospital;
         this.status = status;
         this.requestedDate = requestedDate;
         this.receiveDate = receiveDate;
         this.bloodGroups = bloodGroups;
+        this.requestedId = requestedId;
     }
 
     public void setId(long id) {

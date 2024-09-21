@@ -93,14 +93,17 @@ public class BloodRequestService {
 
                     List<BloodRequestDetail> bloodRequestDetails = bloodRequestDetailRepository.findByBloodRequestId(bloodRequest.getId());
                     List<BloodKeyValue> bloodKeyValues = new ArrayList<>();
+                    List<Long> requestedId = new ArrayList<>();
 
                     if (!bloodRequestDetails.isEmpty()) {
                         for (BloodRequestDetail bloodRequestDetail : bloodRequestDetails) {
-                            bloodKeyValues.add(new BloodKeyValue(bloodRequestDetail.getBloodType(), bloodRequestDetail.getQuantity()));
+                            bloodKeyValues.add(new BloodKeyValue(bloodRequestDetail.getId(), bloodRequestDetail.getBloodType(), bloodRequestDetail.getQuantity()));
+                            requestedId.add(bloodRequestDetail.getBloodRequest());
                         }
                     }
                     bloodRequestAllDetails.add(new BloodRequestAllDetails(
                             bloodRequest.getId(),
+                            requestedId,
                             new KeyValue(hospital.getId(), hospital.getHospitalName()),
                             bloodRequest.getFulfillmentStatus(),
                             bloodRequest.getRequestDate(),
@@ -114,6 +117,41 @@ public class BloodRequestService {
         }
         return bloodRequestAllDetails;
     }
+
+
+    public CustomResponse updateRequestDetails(UserAuthorize admin, List<BloodKeyValue> bloodKeyValues) {
+        try {
+            if (!bloodKeyValues.isEmpty()) {
+                for (BloodKeyValue bloodKeyValue : bloodKeyValues) {
+                    if (bloodKeyValue.getValue() == null) {
+                        return new CustomResponse(-1, "Request Update Failed", "bcn-update_failed_value_null", Status.FAILED);
+                    }
+                    if (bloodKeyValue.getValue() == 0) {
+                        BloodRequestDetail bloodRequestDetail = bloodRequestDetailRepository.getDetailsByIdAndBloodType(bloodKeyValue.getId(), bloodKeyValue.getKey());
+                        if (bloodRequestDetail.getId() > 0) {
+                            int effectedCount = bloodRequestRepository.deleteByRequestId(bloodRequestDetail.getBloodRequest(), FulfillmentStatus.CANCELED);
+                            if (effectedCount > 0) {
+                                return new CustomResponse(0, "Request Delete Successful", "bcn-delete-success", Status.SUCCESS);
+                            } else {
+                                return new CustomResponse(-1, "Request Delete Failed", "bcn-delete_failed_stock_request_id_not_match", Status.FAILED);
+                            }
+                        } else {
+                            return new CustomResponse(-1, "Request Delete Failed", "bcn-delete_failed_stock_request_id_not_match", Status.FAILED);
+                        }
+                    } else if (bloodKeyValue.getValue() <= 0) {
+                        return new CustomResponse(-1, "Request Update Failed", "bcn-update_failed_invalid_date", Status.FAILED);
+                    } else {
+                        int  effectedRow = bloodRequestDetailRepository.updateDetailsByIdAndBloodType(bloodKeyValue.getId(), bloodKeyValue.getKey(), bloodKeyValue.getValue());
+                    }
+                }
+                return new CustomResponse(0, "Request Update Successful", "bcn-update-success", Status.SUCCESS);
+            }
+            return new CustomResponse(-1, "Request Update Failed", "bcn-update_failed_empty_body", Status.FAILED);
+        } catch (Exception e) {
+            return new CustomResponse(-1, "Request Update Failed: " + e.getMessage(), "bcn-update_failed", Status.FAILED);
+        }
+    }
+
 
 
 }

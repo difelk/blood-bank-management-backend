@@ -5,9 +5,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class BloodKeyValue {
 
 
+    private long id;
     private String key;
     private Double value;
 
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public String getKey() {
         return key;
@@ -29,7 +37,8 @@ public class BloodKeyValue {
 
     }
 
-    public BloodKeyValue(String key, Double value){
+    public BloodKeyValue(long id, String key, Double value){
+        this.id = id;
         this.key = key;
         this.value = value;
     }
