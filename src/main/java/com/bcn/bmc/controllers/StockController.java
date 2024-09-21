@@ -6,6 +6,7 @@ import com.bcn.bmc.services.BloodRequestService;
 import com.bcn.bmc.services.StockService;
 import com.bcn.bmc.services.StockTransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,6 +62,13 @@ public class StockController {
     public CustomResponse updateRequestDetails(@RequestHeader("Authorization") String tokenHeader, @RequestBody List<BloodKeyValue> bloodKeyValue) {
         UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
         return bloodRequestService.updateRequestDetails(userAuthorize, bloodKeyValue);
+    }
+
+    @DeleteMapping("/requests/details/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public CustomResponse deleteStockRequestById(@RequestHeader("Authorization") String tokenHeader, @PathVariable long id) {
+        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        return bloodRequestService.deleteStockRequestById(userAuthorize, id);
     }
 
 
