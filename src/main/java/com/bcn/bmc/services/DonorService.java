@@ -406,4 +406,31 @@ public class DonorService {
             return null;
         }
     }
+
+
+    @Transactional
+    public DonorAddressResponse updateAddress(UserAuthorize userAuthorize, DonorAddress newAddress) {
+        System.out.println("DONNER ADDRESS - DONOR ID: "+ newAddress.getDonorId());
+        Optional<DonorAddress> addressOptional = donorAddressRepository.findAddressByDonorId(newAddress.getDonorId());
+
+
+        if (addressOptional.isPresent()) {
+            DonorAddress existingAddress = addressOptional.get();
+            existingAddress.setStreetNumber(newAddress.getStreetNumber());
+            existingAddress.setStreetName(newAddress.getStreetName());
+            existingAddress.setCity(newAddress.getCity());
+            existingAddress.setState(newAddress.getState());
+            existingAddress.setZipCode(newAddress.getZipCode());
+
+
+
+            DonorAddress savedAddress = donorAddressRepository.save(existingAddress);
+
+
+            return new DonorAddressResponse("Success", "Address updated successfully", savedAddress.getId());
+        } else {
+
+            return saveAddress(userAuthorize, newAddress.getDonorId(), newAddress);
+        }
+    }
 }

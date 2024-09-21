@@ -140,4 +140,10 @@ public class DonorController {
         UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
         return donorService.createDonorFromCsv(userAuthorize, file);
     }
+
+    @PutMapping("/address")
+    public ResponseEntity<DonorAddressResponse> updateAddress(@RequestHeader("Authorization") String tokenHeader, @RequestBody DonorAddress address) {
+        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        return ResponseEntity.ok(donorService.updateAddress(userAuthorize, address));
+    }
 }
