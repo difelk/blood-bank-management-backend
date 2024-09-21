@@ -50,3 +50,7 @@ CREATE TABLE blood_requests (
     FOREIGN KEY (requestor_organization_id) REFERENCES organizations(id),
     FOREIGN KEY (provider_organization_id) REFERENCES organizations(id)
 );
+
+
+ALTER TABLE blood_requests
+MODIFY COLUMN fulfillment_status ENUM('PENDING', 'FULFILLED', 'REJECTED', 'CANCELED') NOT NULL DEFAULT 'PENDING';

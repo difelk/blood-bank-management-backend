@@ -4,5 +4,6 @@ public enum FulfillmentStatus {
 
     PENDING,
     FULFILLED,
-    REJECTED
+    REJECTED,
+    CANCELED
 }

@@ -55,4 +55,13 @@ public class StockController {
         return bloodRequestService.getAllRequestStock(userAuthorize);
     }
 
+
+    @PutMapping("/requests/details")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public CustomResponse updateRequestDetails(@RequestHeader("Authorization") String tokenHeader, @RequestBody List<BloodKeyValue> bloodKeyValue) {
+        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        return bloodRequestService.updateRequestDetails(userAuthorize, bloodKeyValue);
+    }
+
+
 }
