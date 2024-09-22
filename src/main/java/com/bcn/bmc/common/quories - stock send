@@ -1,0 +1,20 @@
+CREATE TABLE stock_send (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    blood_request_id BIGINT NOT NULL,
+    sent_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    sent_by_user_id BIGINT,
+    status ENUM('SENT', 'RETURNED', 'DAMAGED', 'REJECTED') DEFAULT 'SENT',
+    FOREIGN KEY (blood_request_id) REFERENCES blood_requests(id) ON DELETE CASCADE
+);
+
+
+
+CREATE TABLE stock_send_details (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    stock_send_id BIGINT NOT NULL,
+    blood_request_detail_id BIGINT NOT NULL,
+    sent_quantity DECIMAL(10,2) NOT NULL,
+    status ENUM('SENT', 'RETURNED', 'DAMAGED', 'REJECTED') DEFAULT 'SENT',
+    FOREIGN KEY (stock_send_id) REFERENCES stock_send(id) ON DELETE CASCADE,
+    FOREIGN KEY (blood_request_detail_id) REFERENCES blood_request_details(id) ON DELETE CASCADE
+);

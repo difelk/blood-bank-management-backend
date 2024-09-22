@@ -18,7 +18,8 @@ public interface BloodRequestRepository  extends JpaRepository<BloodRequest, Str
     @Query("select bt from BloodRequest bt where  bt.requestorOrganizationId = :organizationId")
     List<BloodRequest> findAllByOrgId(@Param("organizationId") long organizationId);
 
-
+    @Query("select bt from BloodRequest bt where  bt.providerOrganizationId = :providerId")
+    List<BloodRequest> findAllByProviderId(@Param("providerId") long providerId);
 
     @Modifying
     @Transactional

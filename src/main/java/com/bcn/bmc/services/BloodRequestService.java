@@ -173,5 +173,48 @@ public class BloodRequestService {
         }
     }
 
+    public List<BloodRequestAllDetails> getAllRequestStockAccordingToProvider(UserAuthorize admin){
+
+
+        List<BloodRequestAllDetails> bloodRequestAllDetails = new ArrayList<>();
+
+        try {
+            List<BloodRequest> bloodRequests = bloodRequestRepository.findAllByProviderId(admin.getOrganization());
+
+            if (!bloodRequests.isEmpty()) {
+                for (BloodRequest bloodRequest : bloodRequests) {
+                    Hospital hospital = hospitalRepository.findAllByOrganizationIdLong(bloodRequest.getProviderOrganizationId());
+
+                    if (hospital == null) {
+                        continue;
+                    }
+
+                    List<BloodRequestDetail> bloodRequestDetails = bloodRequestDetailRepository.findByBloodRequestId(bloodRequest.getId());
+                    List<BloodKeyValue> bloodKeyValues = new ArrayList<>();
+                    List<Long> requestedId = new ArrayList<>();
+
+                    if (!bloodRequestDetails.isEmpty()) {
+                        for (BloodRequestDetail bloodRequestDetail : bloodRequestDetails) {
+                            bloodKeyValues.add(new BloodKeyValue(bloodRequestDetail.getId(), bloodRequestDetail.getBloodType(), bloodRequestDetail.getQuantity()));
+                            requestedId.add(bloodRequestDetail.getBloodRequest());
+                        }
+                    }
+                    bloodRequestAllDetails.add(new BloodRequestAllDetails(
+                            bloodRequest.getId(),
+                            requestedId,
+                            new KeyValue(hospital.getId(), hospital.getHospitalName()),
+                            bloodRequest.getFulfillmentStatus(),
+                            bloodRequest.getRequestDate(),
+                            null,
+                            bloodKeyValues
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bloodRequestAllDetails;
+    }
+
 
 }
