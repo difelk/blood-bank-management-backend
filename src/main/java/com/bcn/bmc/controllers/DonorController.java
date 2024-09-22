@@ -4,6 +4,7 @@ import com.bcn.bmc.helper.TokenData;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.services.DonorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,7 +12,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -146,4 +152,17 @@ public class DonorController {
         UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
         return ResponseEntity.ok(donorService.updateAddress(userAuthorize, address));
     }
+
+
+
+
+    @PostMapping("/filter")
+    public DonorFilterResponse filterDonors(@RequestBody DonorFilterRequest request) {
+        return donorService.filterDonors(request);
+    }
+
+
+
+
+
 }
