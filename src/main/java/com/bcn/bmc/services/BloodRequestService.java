@@ -1,18 +1,20 @@
 package com.bcn.bmc.services;
 
-import com.bcn.bmc.enums.BloodType;
 import com.bcn.bmc.enums.FulfillmentStatus;
+import com.bcn.bmc.enums.SendStatus;
 import com.bcn.bmc.enums.Status;
+import com.bcn.bmc.enums.TransactionType;
 import com.bcn.bmc.models.*;
-import com.bcn.bmc.repositories.BloodRequestDetailRepository;
-import com.bcn.bmc.repositories.BloodRequestRepository;
-import com.bcn.bmc.repositories.HospitalRepository;
+import com.bcn.bmc.repositories.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BloodRequestService {
@@ -23,10 +25,22 @@ public class BloodRequestService {
 
     private final HospitalRepository hospitalRepository;
 
-    public BloodRequestService(BloodRequestRepository bloodRequestRepository, BloodRequestDetailRepository bloodRequestDetailRepository, HospitalRepository hospitalRepository) {
+    private final StockSendRepository stockSendRepository;
+
+    private final StockSendDetailsRepository stockSendDetailsRepository;
+
+    private final StockRepository stockRepository;
+
+    private final StockTransactionRepository stockTransactionRepository;
+
+    public BloodRequestService(BloodRequestRepository bloodRequestRepository, BloodRequestDetailRepository bloodRequestDetailRepository, HospitalRepository hospitalRepository, StockSendRepository stockSendRepository, StockSendDetailsRepository stockSendDetailsRepository, StockRepository stockRepository, StockTransactionRepository stockTransactionRepository) {
         this.bloodRequestRepository = bloodRequestRepository;
         this.bloodRequestDetailRepository = bloodRequestDetailRepository;
         this.hospitalRepository = hospitalRepository;
+        this.stockSendRepository = stockSendRepository;
+        this.stockSendDetailsRepository = stockSendDetailsRepository;
+        this.stockRepository = stockRepository;
+        this.stockTransactionRepository = stockTransactionRepository;
     }
 
 
@@ -173,7 +187,7 @@ public class BloodRequestService {
         }
     }
 
-    public List<BloodRequestAllDetails> getAllRequestStockAccordingToProvider(UserAuthorize admin){
+    public List<BloodRequestAllDetails> getAllRequestStockAccordingToProvider(UserAuthorize admin) {
 
 
         List<BloodRequestAllDetails> bloodRequestAllDetails = new ArrayList<>();
@@ -183,7 +197,7 @@ public class BloodRequestService {
 
             if (!bloodRequests.isEmpty()) {
                 for (BloodRequest bloodRequest : bloodRequests) {
-                    Hospital hospital = hospitalRepository.findAllByOrganizationIdLong(bloodRequest.getProviderOrganizationId());
+                    Hospital hospital = hospitalRepository.findAllByOrganizationIdLong(bloodRequest.getRequestorOrganizationId());
 
                     if (hospital == null) {
                         continue;
@@ -214,6 +228,77 @@ public class BloodRequestService {
             e.printStackTrace();
         }
         return bloodRequestAllDetails;
+    }
+
+    @Transactional
+    public CustomResponse shareStock(UserAuthorize userAuthorize, BloodRequestAllDetails bloodRequestAllDetails) {
+        try {
+            StockSend stockSend = new StockSend();
+            stockSend.setBloodRequestId(bloodRequestAllDetails.getRequestedId().get(0));
+            stockSend.setSentByUserId(userAuthorize.getUserId());
+            stockSend.setSentDate(LocalDateTime.now());
+            stockSend.setStatus(SendStatus.SENT);
+            System.out.println("pass 01");
+            StockSend savedStockSend = stockSendRepository.save(stockSend);
+            if (savedStockSend.getId() > 0) {
+                System.out.println("pass 1.01");
+                for (BloodKeyValue bloodKeyValue : bloodRequestAllDetails.getBloodGroups()) {
+                    StockSendDetail stockSendDetail = new StockSendDetail();
+                    stockSendDetail.setStockSend(savedStockSend.getId());
+                    stockSendDetail.setBloodRequestDetail(bloodKeyValue.getId());
+                    stockSendDetail.setSentQuantity(bloodKeyValue.getValue());
+                    stockSendDetail.setStatus(SendStatus.SENT);
+                    stockSendDetailsRepository.save(stockSendDetail);
+
+                    Optional<Stock> stock = stockRepository.findByOrganizationIdAndBloodType(bloodRequestAllDetails.getHospital().getKey(), bloodKeyValue.getKey());
+                    if (stock.isPresent()) {
+
+                        int updatedStock = stockRepository.updateStockQuantityByOrganizationAndBloodType(bloodRequestAllDetails.getHospital().getKey(), bloodKeyValue.getKey(), stock.get().getQuantity() + bloodKeyValue.getValue());
+                        stockTransactionRepository.save(new StockTransaction(stock.get().getId(), TransactionType.TRANSFER_IN, stock.get().getQuantity() + bloodKeyValue.getValue(), new Date(), null, bloodRequestAllDetails.getHospital().getKey(), (long) userAuthorize.getOrganization(), null));
+                        System.out.println("pass 1.02");
+                        if (updatedStock > 0) {
+                            Optional<Stock> stock2 = stockRepository.findByOrganizationIdAndBloodType(userAuthorize.getOrganization(), bloodKeyValue.getKey());
+                            if (stock2.isPresent()) {
+                                int updatedStock2 = stockRepository.updateStockQuantityByOrganizationAndBloodType(userAuthorize.getOrganization(), bloodKeyValue.getKey(), stock2.get().getQuantity() - bloodKeyValue.getValue());
+                                stockTransactionRepository.save(new StockTransaction(stock2.get().getId(), TransactionType.TRANSFER_OUT, stock2.get().getQuantity() - bloodKeyValue.getValue(), new Date(), null, (long) userAuthorize.getOrganization(), bloodRequestAllDetails.getHospital().getKey(), null));
+                                System.out.println("pass 1.03");
+                            } else {
+                                System.out.println("pass 1.04");
+                                return new CustomResponse(-1, "Stock send Failed: ", "bcn-stock_send_failed_stock2_missing", Status.FAILED);
+                            }
+                        } else {
+                            System.out.println("pass 1.05");
+                            return new CustomResponse(-1, "Stock send Failed: ", "bcn-stock_send_failed_at_update_stock_for_destination_org", Status.FAILED);
+                        }
+                    } else {
+                        Stock stock1 = new Stock();
+                        stock1.setOrganizationId(bloodRequestAllDetails.getRequestedId().get(0));
+                        stock1.setBloodType(bloodKeyValue.getKey());
+                        stock1.setQuantity(bloodKeyValue.getValue());
+                        stock1.setLastUpdated(new Date());
+
+                        Stock stockCreate = stockRepository.save(stock1);
+                        System.out.println("pass 2");
+                        if (stockCreate.getId() > 0) {
+                            Optional<Stock> stock2 = stockRepository.findByOrganizationIdAndBloodType(userAuthorize.getOrganization(), bloodKeyValue.getKey());
+                            if (stock2.isPresent()) {
+                                int updatedStock2 = stockRepository.updateStockQuantityByOrganizationAndBloodType(userAuthorize.getOrganization(), bloodKeyValue.getKey(), stock2.get().getQuantity() - bloodKeyValue.getValue());
+                                stockTransactionRepository.save(new StockTransaction(stockCreate.getId(), TransactionType.TRANSFER_IN, stock1.getQuantity(), new Date(), null, bloodRequestAllDetails.getHospital().getKey(), (long) userAuthorize.getOrganization(), null));
+                                System.out.println("pass 2.01");
+                            }
+                        }
+                    }
+                }
+                System.out.println("pass 3");
+                return new CustomResponse(0, "Request Send Successful", "bcn-send-success", Status.SUCCESS);
+            } else {
+                System.out.println("pass 4");
+                return new CustomResponse(-1, "Stock send Failed: ", "bcn-stock_send_failed_at_save_stock", Status.FAILED);
+            }
+        } catch (Exception e) {
+            System.out.println("Stock send failed due to error: {}" + e.getMessage());
+            return new CustomResponse(-1, "Stock send Failed: ", "bcn-stock_send_failed_at_save_stock", Status.FAILED);
+        }
     }
 
 

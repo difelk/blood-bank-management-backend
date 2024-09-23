@@ -16,6 +16,8 @@ public class StockService {
 
     private final HospitalRepository hospitalRepository;
 
+
+
     public StockService(StockRepository stockRepository, StockTransactionService stockTransactionService, HospitalRepository hospitalRepository) {
         this.stockRepository = stockRepository;
         this.stockTransactionService = stockTransactionService;
