@@ -33,6 +33,7 @@ public class BloodRequestService {
 
     private final StockTransactionRepository stockTransactionRepository;
 
+
     public BloodRequestService(BloodRequestRepository bloodRequestRepository, BloodRequestDetailRepository bloodRequestDetailRepository, HospitalRepository hospitalRepository, StockSendRepository stockSendRepository, StockSendDetailsRepository stockSendDetailsRepository, StockRepository stockRepository, StockTransactionRepository stockTransactionRepository) {
         this.bloodRequestRepository = bloodRequestRepository;
         this.bloodRequestDetailRepository = bloodRequestDetailRepository;
@@ -115,13 +116,20 @@ public class BloodRequestService {
                             requestedId.add(bloodRequestDetail.getBloodRequest());
                         }
                     }
+                    List<StockSend> stockSend = stockSendRepository.findByRequestId(bloodRequest.getId());
+                    LocalDateTime receiveDate = null;
+                    if(!stockSend.isEmpty()){
+                        System.out.println("stockSend.get(0).getSentDate(): " + stockSend.get(0).getSentDate());
+                        receiveDate = stockSend.get(0).getSentDate();
+                    }
+                    System.out.println("stockSend length: " + stockSend.size());
                     bloodRequestAllDetails.add(new BloodRequestAllDetails(
                             bloodRequest.getId(),
                             requestedId,
                             new KeyValue(hospital.getId(), hospital.getHospitalName()),
                             bloodRequest.getFulfillmentStatus(),
                             bloodRequest.getRequestDate(),
-                            null,
+                            receiveDate,
                             bloodKeyValues
                     ));
                 }
@@ -189,7 +197,7 @@ public class BloodRequestService {
 
     public List<BloodRequestAllDetails> getAllRequestStockAccordingToProvider(UserAuthorize admin) {
 
-
+        System.out.println("inside the service");
         List<BloodRequestAllDetails> bloodRequestAllDetails = new ArrayList<>();
 
         try {
@@ -213,13 +221,21 @@ public class BloodRequestService {
                             requestedId.add(bloodRequestDetail.getBloodRequest());
                         }
                     }
+
+                    List<StockSend> stockSend = stockSendRepository.findByRequestId(bloodRequest.getId());
+                    LocalDateTime receiveDate = null;
+                    if(!stockSend.isEmpty()){
+                        System.out.println("stockSend.get(0).getSentDate(): " + stockSend.get(0).getSentDate());
+                        receiveDate = stockSend.get(0).getSentDate();
+                    }
+                    System.out.println("stockSend length: " + stockSend.size());
                     bloodRequestAllDetails.add(new BloodRequestAllDetails(
                             bloodRequest.getId(),
                             requestedId,
                             new KeyValue(hospital.getId(), hospital.getHospitalName()),
                             bloodRequest.getFulfillmentStatus(),
                             bloodRequest.getRequestDate(),
-                            null,
+                            receiveDate,
                             bloodKeyValues
                     ));
                 }
@@ -249,10 +265,8 @@ public class BloodRequestService {
                     stockSendDetail.setSentQuantity(bloodKeyValue.getValue());
                     stockSendDetail.setStatus(SendStatus.SENT);
                     stockSendDetailsRepository.save(stockSendDetail);
-
                     Optional<Stock> stock = stockRepository.findByOrganizationIdAndBloodType(bloodRequestAllDetails.getHospital().getKey(), bloodKeyValue.getKey());
                     if (stock.isPresent()) {
-
                         int updatedStock = stockRepository.updateStockQuantityByOrganizationAndBloodType(bloodRequestAllDetails.getHospital().getKey(), bloodKeyValue.getKey(), stock.get().getQuantity() + bloodKeyValue.getValue());
                         stockTransactionRepository.save(new StockTransaction(stock.get().getId(), TransactionType.TRANSFER_IN, stock.get().getQuantity() + bloodKeyValue.getValue(), new Date(), null, bloodRequestAllDetails.getHospital().getKey(), (long) userAuthorize.getOrganization(), null));
                         System.out.println("pass 1.02");
@@ -290,6 +304,8 @@ public class BloodRequestService {
                     }
                 }
                 System.out.println("pass 3");
+                int effectedRow =  bloodRequestRepository.updateStatus(bloodRequestAllDetails.getRequestedId().get(0), FulfillmentStatus.FULFILLED);
+
                 return new CustomResponse(0, "Request Send Successful", "bcn-send-success", Status.SUCCESS);
             } else {
                 System.out.println("pass 4");

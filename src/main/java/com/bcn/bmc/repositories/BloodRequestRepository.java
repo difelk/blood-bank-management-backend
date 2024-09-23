@@ -26,6 +26,11 @@ public interface BloodRequestRepository  extends JpaRepository<BloodRequest, Str
     @Query("UPDATE BloodRequestDetail brd SET brd.quantity = :newQty WHERE brd.id = :id AND brd.bloodType = :bloodType")
     BloodRequestDetail updateDetailsByIdAndBloodType(@Param("id") long id, @Param("bloodType") String type, @Param("newQty") double newQty);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE BloodRequest brd SET brd.fulfillmentStatus = :status WHERE brd.id = :id")
+    int updateStatus(@Param("id") long id, @Param("status") FulfillmentStatus status);
+
 
     @Modifying
     @Transactional
