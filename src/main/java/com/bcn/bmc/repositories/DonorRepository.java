@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +21,9 @@ public interface DonorRepository  extends JpaRepository<Donor, Long> {
 
     @Query("select d from Donor d where  d.id = :organization AND d.status <> 'INACTIVE'")
     List<Donor> findAllByOrganizationId(@Param("organization") int organization);
+
+
+    List<Donor> findByStatusAndBloodTypeIn(ActiveStatus status, List<String> bloodTypes);
+
+
 }

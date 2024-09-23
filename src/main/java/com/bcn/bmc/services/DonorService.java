@@ -12,13 +12,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.stream.Collectors;
+//import java.time.temporal.ChronoUnit;
 
 
 @Service
@@ -433,4 +437,85 @@ public class DonorService {
             return saveAddress(userAuthorize, newAddress.getDonorId(), newAddress);
         }
     }
+
+
+    public DonorFilterResponse filterDonors(DonorFilterRequest request) {
+        List<String> bloodTypes = request.getBloodTypes();
+        String donorsCount = request.getDonorsCount();
+        Date donorsAreFrom = request.getDonorsAreFrom();
+        Date donorsAreTo = request.getDonorsAreTo();
+        boolean eligibleDonors = request.isEligibleDonors();
+
+
+        LocalDate from = donorsAreFrom.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate to = donorsAreTo.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+
+        List<Donor> allDonors = donorRepository.findByStatusAndBloodTypeIn(ActiveStatus.ACTIVE, bloodTypes);
+
+        System.out.println("ALL DONORS: "+ allDonors);
+
+        List<Long> donorIds = new ArrayList<>();
+        if (eligibleDonors) {
+            donorIds = filterDonorsByDonationDate(allDonors, from, to);
+        } else {
+            donorIds = allDonors.stream().map(Donor::getId).collect(Collectors.toList());
+        }
+
+        if (!donorsCount.isBlank()) {
+            int count = Integer.parseInt(donorsCount);
+            donorIds = donorIds.stream().limit(count).collect(Collectors.toList());
+        }
+
+        List<Donor> filteredDonors = donorRepository.findAllById(donorIds);
+
+        System.out.println("filteredDonors: "+ filteredDonors);
+
+
+        DonorFilterResponse response = new DonorFilterResponse(
+                filteredDonors,
+                bloodTypes,
+                from,
+                to,
+                donorsCount,
+                eligibleDonors,
+                request.getTextMessage()
+        );
+
+        System.out.println("RESPONSE: "+ response);
+        return response;
+    }
+
+    private List<Long> filterDonorsByDonationDate(List<Donor> donors, LocalDate from, LocalDate to) {
+        return donors.stream()
+                .filter(donor -> {
+                    Date lastDonationDate = donationRepositories.findLastDonationByDonor(donor.getId())
+                            .map(donation -> donation.getDonationDate())
+                            .orElse(null);
+
+                    if (lastDonationDate == null) {
+                        return true;
+                    }
+
+                    LocalDate lastDonation = lastDonationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                    LocalDate threeMonthsAgo = LocalDate.now().minusMonths(3);
+
+                    return lastDonation.isBefore(threeMonthsAgo) &&
+                            (lastDonation.isEqual(from) || lastDonation.isAfter(from)) &&
+                            (lastDonation.isEqual(to) || lastDonation.isBefore(to));
+                })
+                .map(Donor::getId)
+                .collect(Collectors.toList());
+    }
+
+
+
+
 }
+
+
+
+
+
+
+

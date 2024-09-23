@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,4 +30,8 @@ public interface DonationRepositories  extends JpaRepository<Donation, Long> {
     Optional<Donation> findLastDonationByDonor(@Param("donorId") Long donorId);
 
     List<Donation> findByDonor(Long donorId);
+
+
+    List<Donation> findByDonationDateBetween(Date donationFrom, Date donationTo);
+
 }
