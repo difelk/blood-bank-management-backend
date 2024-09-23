@@ -79,5 +79,11 @@ public class StockController {
         return bloodRequestService.getAllRequestStockAccordingToProvider(userAuthorize);
     }
 
+    @PostMapping(path = "/share")
+    public CustomResponse  shareStock(@RequestHeader("Authorization") String tokenHeader, @RequestBody BloodRequestAllDetails bloodRequestAllDetails){
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+       return bloodRequestService.shareStock(userAuthorize, bloodRequestAllDetails);
+    }
+
 
 }
