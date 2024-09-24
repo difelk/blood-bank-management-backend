@@ -16,4 +16,13 @@ public interface OrganizationRepository extends JpaRepository<Organization, Inte
 
     @Query("select o from Organization o where o.id = :organization")
     List<Organization> findAllByOrganization(@Param("organization") int organization);
+
+
+    @Query("SELECT COUNT(o) FROM Organization o")
+    int getTotalOrganizationsCount();
+
+    @Query("SELECT COUNT(o) FROM Organization o")
+    int getTotalActiveOrganizations();
+
+
 }
