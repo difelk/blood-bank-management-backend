@@ -16,6 +16,7 @@ import java.util.Optional;
 @Repository
 public interface HospitalRepository extends JpaRepository<Hospital, Long> {
     Optional<Hospital> findByHospitalName(String hospitalName);
+
     List<Hospital> findBySector(String sector);
 
     List<Hospital> findAllByStatus(ActiveStatus status);
@@ -29,16 +30,24 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
     @Query("select h from Hospital h where  h.id = :organization AND h.status <> 'INACTIVE'")
     Hospital findByOrganizationId(@Param("organization") long organization);
 
-//    @Query("SELECT new com.bcn.bmc.models.HospitalJoinedDetails(" +
-//            "h.id, h.hospitalName, h.contactNo1, h.contactNo2, h.sector, " +
-//            "ha.hospitalId, ha.streetNumber, ha.streetName, ha.city) " +
-//            "FROM Hospital h " +
-//            "LEFT JOIN HospitalAddress ha ON h.id = ha.hospitalId " +
-//            "WHERE h.status <> 'INACTIVE'")
-//    List<HospitalJoinedDetails> findHospitalsWithAddresses();
-//
-//    @Query("SELECT hd FROM HospitalDocument hd WHERE hd.hospital.id = :hospitalId")
-//    List<HospitalDocument> findDocumentsByHospitalId(@Param("hospitalId") Long hospitalId);
+    @Query("SELECT COUNT(h) FROM Hospital h")
+    int getTotalHospitalsCount();
+
+    @Query("SELECT COUNT(h) FROM Hospital h WHERE h.status <> 'INACTIVE'")
+    int getTotalActiveHospitals();
+
+    @Query("SELECT COUNT(h) FROM Hospital h WHERE h.status = 'INACTIVE'")
+    int getTotalDeActiveHospitals();
+
+
+    @Query("SELECT COUNT(h) FROM Hospital h WHERE h.id = :organization")
+    int getTotalHospitalsCountByOrgId(@Param("organization") long organization);
+
+    @Query("SELECT COUNT(h) FROM Hospital h WHERE h.id = :organization AND h.status <> 'INACTIVE'")
+    int getTotalActiveHospitalsByOrgId(@Param("organization") long organization);
+
+    @Query("SELECT COUNT(h) FROM Hospital h WHERE h.id = :organization AND  h.status = 'INACTIVE'")
+    int getTotalDeActiveHospitalsByOrgId(@Param("organization") long organization);
 
 
 

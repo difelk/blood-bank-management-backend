@@ -72,4 +72,25 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("update User u set u.password = :password, u.isNewUser = :isNewUser where u.id = :id")
     int resetPasswordByUserId(@Param("id") long id, @Param("password") String password, @Param("isNewUser") boolean isNewUser);
 
+    @Query("SELECT COUNT(u) FROM User u")
+    int getTotalUsers();
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.status <> 'INACTIVE'")
+    int getTotalActiveUsers();
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.status = 'INACTIVE'")
+    int getTotalDeActiveUsers();
+
+
+
+    @Query("SELECT COUNT(u) FROM User u where u.organization = :organization")
+    int getTotalUsersByOrgId(@Param("organization") int organization);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.organization = :organization AND u.status <> 'INACTIVE'")
+    int getTotalActiveUsersByOrgId(@Param("organization") int organization);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.organization = :organization AND u.status = 'INACTIVE'")
+    int getTotalDeActiveUsersByOrgId(@Param("organization") int organization);
+
+
 }

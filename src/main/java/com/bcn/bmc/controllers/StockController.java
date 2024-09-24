@@ -28,6 +28,7 @@ public class StockController {
     @Autowired
     private TokenData tokenHelper;
 
+
     @GetMapping("/history")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public List<StockHistory> getHospitalTransactionHistory(@RequestHeader("Authorization") String tokenHeader){
