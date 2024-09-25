@@ -4,7 +4,7 @@ import com.bcn.bmc.enums.ConditionStatus;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "organizations")
+@Table(name = "medical_conditions")
 public class MedicalCondition {
 
     public Long getId() {
