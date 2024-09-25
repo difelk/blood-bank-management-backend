@@ -1,0 +1,7 @@
+CREATE TABLE medical_conditions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    condition_name VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    symptoms TEXT NOT NULL,
+    status ENUM('ACTIVE', 'INACTIVE') DEFAULT 'ACTIVE'
+);
