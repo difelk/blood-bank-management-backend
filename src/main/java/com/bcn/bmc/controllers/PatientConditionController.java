@@ -2,6 +2,7 @@ package com.bcn.bmc.controllers;
 
 import com.bcn.bmc.helper.TokenData;
 import com.bcn.bmc.models.PatientCondition;
+import com.bcn.bmc.models.PatientConditionsHistory;
 import com.bcn.bmc.services.PatientConditionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -57,6 +58,12 @@ public class PatientConditionController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+
+    @GetMapping("/{id}/history")
+    public List<PatientConditionsHistory> getPatientConditionHistoryById(@PathVariable Long id) {
+       return patientConditionService.getPatientConditionHistoryById(id);
     }
 
     @DeleteMapping("/{id}")
