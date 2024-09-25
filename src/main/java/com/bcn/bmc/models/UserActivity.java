@@ -25,6 +25,18 @@ public class UserActivity {
     @Column(name = "ip_address", nullable = true)
     private String ipAddress;
 
+    public UserActivity(){
+
+    }
+    public UserActivity(Long userId, String activityType, String activityDetails, String ipAddress, LocalDateTime timestamp, ActivityStatus activityStatus) {
+        this.userId = userId;
+        this.activityType = activityType;
+        this.activityDetails = activityDetails;
+        this.ipAddress = ipAddress;
+        this.timestamp = timestamp;
+        this.activityStatus = activityStatus;
+    }
+
     public Long getId() {
         return id;
     }
