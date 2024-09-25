@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import jakarta.mail.MessagingException;
 
 @Service
 public class EmailService {
@@ -45,25 +48,30 @@ public class EmailService {
         }
         System.out.println("sendVerificationEmail to " + to);
         System.out.println("sendVerificationEmail subject " + subject);
-        System.out.println("sendVerificationEmail text " + code);
+        System.out.println("sendVerificationEmail code " + code);
         System.out.println("sendVerificationEmail psw " + psw);
 
         String mes = "<html><body>"
-                + "<p>HI " + firstName + ' ' + lastName + "!,</p>"
+                + "<p>Hi " + firstName + " " + lastName + "!</p>"
                 + "<p>Your account for the BloodCenter Network has been created successfully.</p>"
                 + "<p>Your username is: <strong>" + userName + "</strong></p>"
                 + "<p>Your one-time password is: <strong>" + psw + "</strong></p>"
-                + "<p>Your verification code is: <strong>" + code + ". verification code will expired within 24hrs.in case it was expired you can still request a verification code through login form</strong></p>"
+                + "<p>Your verification code is: <strong>" + code + "</strong>. The verification code will expire within 24 hours. In case it expires, you can request a new code through the login form.</p>"
                 + "<p>Please log in using these credentials. You will be prompted to enter the verification code.</p>"
                 + "<p>Once you enter the code, you will be able to change your password.</p>"
                 + "<p>Thank you!</p>"
                 + "<p>Best regards,<br/>BloodCenter Network</p>"
                 + "</body></html>";
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(mes);
-        emailSender.send(message);
+        try {
+            MimeMessage mimeMessage = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(mes, true);
+            emailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
     }
 }
