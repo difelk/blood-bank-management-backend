@@ -14,6 +14,9 @@ public interface OrganizationRepository extends JpaRepository<Organization, Inte
     @Query("select o from Organization o where o.id = ?1")
     Optional<Organization> findOrganizationById(@Param("id") int id);
 
+    @Query("select o from Organization o where o.id = ?1")
+    Optional<Organization> findOrganizationByLongId(@Param("id") long id);
+
     @Query("select o from Organization o where o.id = :organization")
     List<Organization> findAllByOrganization(@Param("organization") int organization);
 

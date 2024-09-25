@@ -2,6 +2,9 @@ package com.bcn.bmc.models;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "patient_conditions")
 public class PatientCondition {
@@ -18,15 +21,42 @@ public class PatientCondition {
     @Column(name = "condition_id", nullable = false)
     private long condition;
 
+
+
     @Column(name = "blood_donation_count", nullable = false)
     private int bloodDonationCount = 0;
 
+
+    @Column(name = "date", nullable = false)
+    private LocalDateTime date;
+
+    @Column(name = "organization_id", nullable = false)
+    private long organization;
+
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime date) {
+        this.date = date;
+    }
+
     public PatientCondition() {}
 
-    public PatientCondition(long patient, long condition, int bloodDonationCount) {
+    public long getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(long organization) {
+        this.organization = organization;
+    }
+
+    public PatientCondition(long patient, long condition, int bloodDonationCount, LocalDateTime date, long organization) {
         this.patient = patient;
         this.condition = condition;
         this.bloodDonationCount = bloodDonationCount;
+        this.date = date;
+        this.organization = organization;
     }
 
     public Long getId() {
