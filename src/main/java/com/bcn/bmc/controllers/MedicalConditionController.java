@@ -46,6 +46,13 @@ public class MedicalConditionController {
         return medicalConditionService.updateCondition(userAuthorize, conditionId, medicalCondition);
     }
 
+    @GetMapping("/check-condition-name")
+    public CustomResponse checkConditionNameExists(@RequestHeader("Authorization") String tokenHeader,
+                                                   @RequestParam("conditionName") String conditionName) {
+        UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        return medicalConditionService.checkConditionNameExists(userAuthorize, conditionName);
+    }
+
     @DeleteMapping("/{conditionId}")
     public CustomResponse deleteCondition(@RequestHeader("Authorization") String tokenHeader,
                                           @PathVariable long conditionId) {

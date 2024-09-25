@@ -60,6 +60,17 @@ public class MedicalConditionService {
         return new CustomResponse(conditionToUpdate.getId().intValue(), "Condition updated successfully", "CONDITION_UPDATED", Status.SUCCESS);
     }
 
+    public CustomResponse checkConditionNameExists(UserAuthorize userAuthorize, String conditionName) {
+        Optional<MedicalCondition> existingCondition = medicalConditionRepository.findByConditionName(conditionName);
+
+        if (existingCondition.isPresent() && existingCondition.get().getStatus() == ConditionStatus.ACTIVE) {
+            return new CustomResponse(1, "Condition name exists", "CONDITION_EXISTS", Status.SUCCESS);
+        }
+
+        return new CustomResponse(0, "Condition name does not exist", "CONDITION_NOT_FOUND", Status.FAILED);
+    }
+
+
     public CustomResponse deleteCondition(UserAuthorize userAuthorize, Long conditionId) {
         Optional<MedicalCondition> existingCondition = medicalConditionRepository.findById(conditionId);
 
