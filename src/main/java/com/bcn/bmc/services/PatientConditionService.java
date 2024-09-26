@@ -1,5 +1,6 @@
 package com.bcn.bmc.services;
 
+import com.bcn.bmc.enums.ActivityStatus;
 import com.bcn.bmc.enums.Status;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.*;
@@ -25,14 +26,17 @@ public class PatientConditionService {
 
     private final StockRepository stockRepository;
 
+    private final UserActivityRepository userActivityRepository;
+
 
     @Autowired
-    public PatientConditionService(PatientConditionRepository patientConditionRepository, PatientRepository patientRepository, OrganizationRepository organizationRepository, MedicalConditionRepository medicalConditionRepository, StockRepository stockRepository) {
+    public PatientConditionService(PatientConditionRepository patientConditionRepository, PatientRepository patientRepository, OrganizationRepository organizationRepository, MedicalConditionRepository medicalConditionRepository, StockRepository stockRepository, UserActivityRepository userActivityRepository) {
         this.patientConditionRepository = patientConditionRepository;
         this.patientRepository = patientRepository;
         this.organizationRepository = organizationRepository;
         this.medicalConditionRepository = medicalConditionRepository;
         this.stockRepository = stockRepository;
+        this.userActivityRepository = userActivityRepository;
     }
 
 
@@ -96,14 +100,20 @@ public class PatientConditionService {
                 PatientCondition patientCondition1 = patientConditionRepository.save(patientCondition);
                 if (patientCondition1.getId() > 0) {
                     reduceFromStock(userAuthorize.getOrganization(), patientCondition.getPatient(), patientCondition.getBloodDonationCount());
+
+                    userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Save Patient Condition", "Save Patient Condition: " + patientCondition.getPatient(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
+
                     return new CustomResponse(1, "Record added successfully", "success_at_save", Status.SUCCESS);
                 } else {
+                    userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Save Patient Condition", "Save Patient Condition Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
                     return new CustomResponse(-1, "Record added failed", "failed_at_save_patient_condition", Status.FAILED);
                 }
             } catch (Exception e) {
+                userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Save Patient Condition", "Save Patient Condition Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
                 return new CustomResponse(-1, "Record added failed", "failed_at_save_patient_condition", Status.FAILED);
             }
         } else {
+
             return new CustomResponse(-1, "No Enough Stock Available", "no_enough_stock", Status.FAILED);
         }
     }
@@ -169,6 +179,7 @@ public class PatientConditionService {
             existingPatientCondition.setPatient(updatedPatientCondition.getPatient());
             existingPatientCondition.setCondition(updatedPatientCondition.getCondition());
             existingPatientCondition.setBloodDonationCount(newBloodDonationCount);
+
 
             return patientConditionRepository.save(existingPatientCondition);
         } else {
