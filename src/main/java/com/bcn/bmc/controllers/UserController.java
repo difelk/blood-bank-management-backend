@@ -99,14 +99,14 @@ public class UserController {
     public UserAddressResponse createAddress(@RequestHeader("Authorization") String tokenHeader, @RequestBody Address address){
         System.out.println("called post add address");
         UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
-        return userAddressService.createAddress(address);
+        return userAddressService.createAddress(userAuthorize, address);
     }
 
     @PutMapping("/address")
 // @PreAuthorize("hasAuthority('ROLE_USER')")
     public UserAddressResponse updateAddress(@RequestHeader("Authorization") String tokenHeader, @RequestBody Address address) {
         UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
-        return userAddressService.updateAddress(address);
+        return userAddressService.updateAddress(userAuthorize, address);
     }
 
     @GetMapping("/address/{userid}")
@@ -118,10 +118,11 @@ public class UserController {
 //    documents
 
     @PostMapping("/documents/upload")
-    public ResponseEntity<UserDocument> uploadFile(@RequestParam("file") MultipartFile file,
+    public ResponseEntity<UserDocument> uploadFile(@RequestHeader("Authorization") String tokenHeader,@RequestParam("file") MultipartFile file,
                                                    @RequestParam("userId") Long userId) {
         try {
-            UserDocument savedDocument = userDocumentService.storeFile(file, userId);
+            UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+            UserDocument savedDocument = userDocumentService.storeFile(userAuthorize, file, userId);
             return new ResponseEntity<>(savedDocument, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -147,8 +148,9 @@ public class UserController {
 
     @DeleteMapping("/documents/{documentId}")
 //    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<UserDocumentResponse> deleteDocumentById(@PathVariable long documentId) {
-        return userDocumentService.deleteDocumentById(documentId);
+    public ResponseEntity<UserDocumentResponse> deleteDocumentById(@RequestHeader("Authorization") String tokenHeader,@PathVariable long documentId) {
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+        return userDocumentService.deleteDocumentById(userAuthorize,documentId);
     }
 
 }

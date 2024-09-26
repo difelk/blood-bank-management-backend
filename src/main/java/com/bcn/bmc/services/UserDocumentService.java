@@ -1,8 +1,8 @@
 package com.bcn.bmc.services;
 
-import com.bcn.bmc.models.User;
-import com.bcn.bmc.models.UserDocument;
-import com.bcn.bmc.models.UserDocumentResponse;
+import com.bcn.bmc.enums.ActivityStatus;
+import com.bcn.bmc.models.*;
+import com.bcn.bmc.repositories.UserActivityRepository;
 import com.bcn.bmc.repositories.UserDocumentRepository;
 import com.bcn.bmc.repositories.UserRepository;
 import jakarta.transaction.Transactional;
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,8 +23,10 @@ public class UserDocumentService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private UserActivityRepository userActivityRepository;
 
-    public UserDocument storeFile(MultipartFile file, Long userId) throws IOException {
+    public UserDocument storeFile(UserAuthorize admin, MultipartFile file, Long userId) throws IOException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid user ID"));
 
@@ -33,7 +36,7 @@ public class UserDocumentService {
         userDocument.setFileSize(file.getSize());
         userDocument.setData(file.getBytes());
         userDocument.setUser(user);
-
+        userActivityRepository.save(new UserActivity(admin.getUserId(), "Document Upload", "Document Upload: " + userId, "", LocalDateTime.now(), ActivityStatus.SUCCESS));
         return userDocumentRepository.save(userDocument);
     }
 
@@ -44,7 +47,7 @@ public class UserDocumentService {
 
 
     @Transactional
-    public ResponseEntity<UserDocumentResponse> deleteDocumentById(long documentId) {
+    public ResponseEntity<UserDocumentResponse> deleteDocumentById(UserAuthorize admin,long documentId) {
         if (!userDocumentRepository.existsById(documentId)) {
             return new ResponseEntity<>(
                     new UserDocumentResponse(null, null, null, null, "Document not found"),
@@ -55,6 +58,7 @@ public class UserDocumentService {
             UserDocument document = userDocumentRepository.findById(documentId).orElse(null);
             userDocumentRepository.deleteById(documentId);
 
+            userActivityRepository.save(new UserActivity(admin.getUserId(), "Document Delete", "User Document ID: " + documentId, "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             return new ResponseEntity<>(
                     new UserDocumentResponse(
                             document.getId(),
@@ -66,6 +70,7 @@ public class UserDocumentService {
                     HttpStatus.OK
             );
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(admin.getUserId(), "Document Delete", "User Document Failed: " + documentId, "", LocalDateTime.now(), ActivityStatus.FAILURE));
             return new ResponseEntity<>(
                     new UserDocumentResponse(null, null, null, null, "Error occurred while deleting document"),
                     HttpStatus.INTERNAL_SERVER_ERROR
