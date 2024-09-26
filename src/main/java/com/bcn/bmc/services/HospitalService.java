@@ -1,15 +1,18 @@
 package com.bcn.bmc.services;
 
 import com.bcn.bmc.enums.ActiveStatus;
+import com.bcn.bmc.enums.ActivityStatus;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.HospitalRepository;
 import com.bcn.bmc.repositories.OrganizationRepository;
+import com.bcn.bmc.repositories.UserActivityRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,13 +31,19 @@ public class HospitalService {
 
     private final StockService stockService;
 
-    public HospitalService(HospitalRepository hospitalRepository, OrganizationRepository organizationRepository, HospitalAddressService hospitalAddressService, HospitalDocumentService hospitalDocumentService,  DonationService donationService, StockService stockService) {
+    private final UserActivityRepository userActivityRepository;
+
+
+    public HospitalService(HospitalRepository hospitalRepository, OrganizationRepository organizationRepository, HospitalAddressService hospitalAddressService, HospitalDocumentService hospitalDocumentService,  DonationService donationService, StockService stockService, UserActivityRepository userActivityRepository
+    ) {
         this.hospitalRepository = hospitalRepository;
         this.organizationRepository = organizationRepository;
         this.hospitalAddressService = hospitalAddressService;
         this.hospitalDocumentService = hospitalDocumentService;
         this.donationService = donationService;
         this.stockService = stockService;
+        this.userActivityRepository = userActivityRepository;
+
     }
 
     @Transactional
@@ -48,9 +57,10 @@ public class HospitalService {
                     LocalDate.now()
             );
             organizationRepository.save(organization);
-
+            userActivityRepository.save(new UserActivity(1L, "Save Hospital", "Save Hospital: " + savedHospital.getId(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             return savedHospital;
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(1L, "Save Hospital", "Save Hospital Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             throw new RuntimeException("Error creating hospital and organization: " + e.getMessage(), e);
         }
     }
@@ -154,11 +164,13 @@ public class HospitalService {
         try {
             if (hospitalRepository.existsById(hospital.getId())) {
                 Hospital updatedHospital = hospitalRepository.save(hospital);
+                userActivityRepository.save(new UserActivity(1L, "Update Hospital", "Update Hospital: " + updatedHospital.getId(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
                 return new HospitalResponse(Math.toIntExact(updatedHospital.getId()), "Hospital updated successfully");
             } else {
                 return new HospitalResponse(-1, "Hospital not found");
             }
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(1L, "Update Hospital", "Update Hospital Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             return new HospitalResponse(-1, "Failed to update hospital: " + e.getMessage());
         }
     }
@@ -170,11 +182,13 @@ public class HospitalService {
             if (hospital != null) {
                 hospital.setStatus(ActiveStatus.INACTIVE);
                 hospitalRepository.save(hospital);
+                userActivityRepository.save(new UserActivity(1L, "Delete Hospital", "Delete Hospital: " + hospital.getId(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
                 return new HospitalResponse(Math.toIntExact(id), "Hospital marked as inactive successfully");
             } else {
                 return new HospitalResponse(-1, "Hospital not found");
             }
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(1L, "Delete Hospital", "Delete Hospital Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             return new HospitalResponse(-1, "Failed to mark hospital as inactive: " + e.getMessage());
         }
     }

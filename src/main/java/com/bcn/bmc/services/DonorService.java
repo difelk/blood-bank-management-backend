@@ -1,6 +1,7 @@
 package com.bcn.bmc.services;
 
 import com.bcn.bmc.enums.ActiveStatus;
+import com.bcn.bmc.enums.ActivityStatus;
 import com.bcn.bmc.enums.Gender;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.*;
@@ -16,6 +17,7 @@ import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -34,15 +36,19 @@ public class DonorService {
     private final DonorDocumentRepository donorDocumentRepository;
     private final DonationRepositories donationRepositories;
 
+    private final UserActivityRepository userActivityRepository;
 
     private final DonationService donationService;
 
-    public DonorService(DonorRepository donorRepository, DonorAddressRepository donorAddressRepository, DonorDocumentRepository donorDocumentRepository, DonationRepositories donationRepositories, DonationService donationService) {
+    public DonorService(DonorRepository donorRepository, DonorAddressRepository donorAddressRepository, DonorDocumentRepository donorDocumentRepository, DonationRepositories donationRepositories, DonationService donationService, UserActivityRepository userActivityRepository
+    ) {
         this.donorRepository = donorRepository;
         this.donorAddressRepository = donorAddressRepository;
         this.donorDocumentRepository = donorDocumentRepository;
         this.donationRepositories = donationRepositories;
         this.donationService = donationService;
+        this.userActivityRepository = userActivityRepository;
+
     }
 
 
@@ -109,12 +115,16 @@ public class DonorService {
             Donor newDonor = donorRepository.save(donor);
 
             if (newDonor.getId() > 0) {
+                userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Register Donor", "Register Donor: " + newDonor.getId(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
+
                 return new DonorResponse("Success", "Donor registered successfully.", newDonor.getId());
             } else {
+                userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Register Donor", "Register Donor Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
                 return new DonorResponse("Failure", "Donor registration failed.");
             }
 
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Register Donor", "Register Donor Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             throw new RuntimeException("Error creating donor: " + e.getMessage(), e);
         }
     }
@@ -242,12 +252,16 @@ public class DonorService {
             DonorAddress donorAddress1 = donorAddressRepository.save(donorAddress);
 
             if (donorAddress1.getId() > 0) {
+                userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Register Donor Address", "Register Donor Address: " + donorAddress1.getDonorId(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
+
                 return new DonorAddressResponse("Success", "Donor address registered successfully.");
             } else {
+                userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Register Donor Address", "Register Donor Address Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
                 return new DonorAddressResponse("Failure", "Donor address registration failed.");
             }
 
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Register Donor Address", "Register Donor Address Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             throw new RuntimeException("Error creating donor: " + e.getMessage(), e);
         }
     }
@@ -260,12 +274,15 @@ public class DonorService {
             DonorDocument donorDocument1 = donorDocumentRepository.save(donorDocument);
 
             if (donorDocument1.getId() > 0) {
+                userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Register Donor Document", "Register Donor Document: " + donorDocument1.getDonorId(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
                 return new DonorDocumentResponse("Success", "Donor Document Saved successfully.");
             } else {
+                userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Register Donor Document", "Register Donor Document Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
                 return new DonorDocumentResponse("Failure", "Donor Document Save failed.");
             }
 
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Register Donor Document", "Register Donor Document Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             throw new RuntimeException("Error creating donor: " + e.getMessage(), e);
         }
     }
@@ -310,9 +327,11 @@ public class DonorService {
 
             donorRepository.save(existingDonor);
 
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Update Donor", "Update Donor: " + existingDonor.getId(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             return new DonorResponse("Success", "Donor details updated successfully.", updatedDonor.getId());
 
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Update Donor", "Update Donor Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             throw new RuntimeException("Error updating donor: " + e.getMessage(), e);
         }
     }
@@ -325,8 +344,10 @@ public class DonorService {
             if (donor != null) {
                 donor.setStatus(ActiveStatus.INACTIVE);
                 donorRepository.save(donor);
+
                 return new DonorResponse("Success", "Donor marked as inactive successfully");
             } else {
+
                 return new DonorResponse("Failed", "Donor not found");
             }
         } catch (Exception e) {
@@ -430,10 +451,10 @@ public class DonorService {
 
             DonorAddress savedAddress = donorAddressRepository.save(existingAddress);
 
-
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Update Donor Address", "Update Donor Address: " + savedAddress.getDonorId(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             return new DonorAddressResponse("Success", "Address updated successfully", savedAddress.getId());
         } else {
-
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Update Donor Address", "Update Donor Address Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             return saveAddress(userAuthorize, newAddress.getDonorId(), newAddress);
         }
     }

@@ -1,15 +1,14 @@
 package com.bcn.bmc.services;
 
+import com.bcn.bmc.enums.ActivityStatus;
 import com.bcn.bmc.models.*;
-import com.bcn.bmc.repositories.DonationRepositories;
-import com.bcn.bmc.repositories.DonorRepository;
-import com.bcn.bmc.repositories.OrganizationRepository;
-import com.bcn.bmc.repositories.UserRepository;
+import com.bcn.bmc.repositories.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -20,12 +19,16 @@ public class DonationService {
     private final CommonService commonService;
     private final DonationRepositories donationRepository;
     private final StockService stockService;
+    private final UserActivityRepository userActivityRepository;
+
 
     @Autowired
-    public DonationService(CommonService commonService, DonationRepositories donationRepository, StockService stockService) {
+    public DonationService(CommonService commonService, DonationRepositories donationRepository, StockService stockService, UserActivityRepository userActivityRepository
+    ) {
         this.commonService = commonService;
         this.donationRepository = donationRepository;
         this.stockService = stockService;
+        this.userActivityRepository = userActivityRepository;
     }
 
     @Transactional
@@ -78,15 +81,19 @@ public class DonationService {
                             donation.getQuantity(),
                             donation.getDonor()
                     );
+                    userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Save Donation", "Save Donation: " + newDonation.getDonor(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
+
                     return new DonationResponse("Success", "Donation added successfully.");
                 } catch (Exception stockUpdateException) {
                     return new DonationResponse("Partial Success", "Donation added successfully, but failed to update stock. Error: " + stockUpdateException.getMessage());
                 }
             } else {
+                userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Save Donation", "Save Donation Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
                 return new DonationResponse("Failure", "Donation added failed.");
             }
 
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Save Donation", "Save Donation Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             throw new RuntimeException("Error creating donation: " + e.getMessage(), e);
         }
     }
@@ -228,10 +235,11 @@ public class DonationService {
                     return new DonationResponse("Partial Success", "Donation updated successfully, but failed to update stock. Error: " + stockUpdateException.getMessage());
                 }
             }
-
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Update Donation", "Update Donation: " + donation.getDonor(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             return new DonationResponse("Success", "Donation updated successfully.");
 
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Update Donation", "Update Donation Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             throw new RuntimeException("Error updating donation: " + e.getMessage(), e);
         }
     }
@@ -247,6 +255,7 @@ public class DonationService {
             }
 
             donationRepository.deleteById(donationId);
+
 
             return new DonationResponse("Success", "Donation deleted successfully.");
 
