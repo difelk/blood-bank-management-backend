@@ -1,6 +1,7 @@
 package com.bcn.bmc.services;
 
 import com.bcn.bmc.enums.ActiveStatus;
+import com.bcn.bmc.enums.ActivityStatus;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.*;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -19,13 +21,14 @@ public class PatientService {
     private final PatientRepository patientRepository;
     private final PatientAddressRepository patientAddressRepository;
     private final PatientDocumentRepository patientDocumentRepository;
-
+    private final UserActivityRepository userActivityRepository;
     public PatientService(PatientRepository patientRepository,
                           PatientAddressRepository patientAddressRepository,
-                          PatientDocumentRepository patientDocumentRepository) {
+                          PatientDocumentRepository patientDocumentRepository, UserActivityRepository userActivityRepository) {
         this.patientRepository = patientRepository;
         this.patientAddressRepository = patientAddressRepository;
         this.patientDocumentRepository = patientDocumentRepository;
+        this.userActivityRepository = userActivityRepository;
     }
 
     @Transactional
@@ -38,9 +41,10 @@ public class PatientService {
             patient.setCreatedBy(userAuthorize.getUserId());
             patient.setDate(new Date());
             Patient newPatient = patientRepository.save(patient);
-
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Create Patient", "Create Patient: " + newPatient.getNic(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             return new PatientResponse("Success", "Patient created successfully.", newPatient.getId());
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Create Patient", "Create Patient Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             throw new RuntimeException("Error creating patient: " + e.getMessage(), e);
         }
     }
@@ -95,10 +99,12 @@ public class PatientService {
             existingPatient.get().setEmergencyContactPersonContactNo(updatedPatient.getEmergencyContactPersonContactNo());
 
             patientRepository.save(existingPatient.get());
-
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Update Patient", "Update Patient: " + existingPatient.get().getNic(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             return new PatientResponse("Success", "Patient details updated successfully.", updatedPatient.getId());
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Update Patient", "Update Patient Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             throw new RuntimeException("Error updating patient: " + e.getMessage(), e);
+
         }
     }
 
@@ -111,9 +117,10 @@ public class PatientService {
             }
 
             patientRepository.delete(patient.get());
-
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Delete Patient", "Delete Patient: " + patient.get().getNic(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             return new PatientResponse("Success", "Patient deleted successfully.");
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Delete Patient", "Delete Patient Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             throw new RuntimeException("Error deleting patient: " + e.getMessage(), e);
         }
     }
@@ -133,8 +140,10 @@ public class PatientService {
             patientAddress.setPatientId(patientId);
             PatientAddress savedAddress = patientAddressRepository.save(patientAddress);
 
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Save Patient Address", "Save Patient Address: " + savedAddress.getPatientId(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             return new PatientAddressResponse("Success", "Address saved successfully.");
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(userAuthorize.getUserId(), "Save Patient Address", "Save Patient Address Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             throw new RuntimeException("Error saving address: " + e.getMessage(), e);
         }
     }
@@ -234,6 +243,7 @@ public class PatientService {
             existingAddress.setStreetName(newAddress.getStreetName());
             existingAddress.setCity(newAddress.getCity());
             PatientAddress savedAddress = patientAddressRepository.save(existingAddress);
+
 
             return new PatientAddressResponse("Success", "Address updated successfully", savedAddress.getId());
         } else {
