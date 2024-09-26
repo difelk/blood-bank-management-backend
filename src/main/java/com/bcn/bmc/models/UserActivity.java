@@ -53,17 +53,6 @@ public class UserActivity {
         this.userId = userId;
     }
 
-    public UserActivity(){
-
-    }
-    public UserActivity(Long userId, String activityType, String activityDetails, String ipAddress, LocalDateTime timestamp, ActivityStatus activityStatus) {
-        this.userId = userId;
-        this.activityType = activityType;
-        this.activityDetails = activityDetails;
-        this.ipAddress = ipAddress;
-        this.timestamp = timestamp;
-        this.activityStatus = activityStatus;
-    }
 
     public String getActivityType() {
         return activityType;
