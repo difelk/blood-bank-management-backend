@@ -46,6 +46,7 @@ public class EventService {
 
             event.setCreatedBy(createdByUser);
             event.setCreatedDate(LocalDate.now());
+            event.setOrganizationId(userAuthorize.getOrganization());
             event.setStatus(ActiveStatus.ACTIVE);
             event.setEventStatus(EventStatus.PENDING);
 
@@ -217,7 +218,7 @@ public class EventService {
 
     public List<Event> getAllEvents(UserAuthorize userAuthorize) {
         try {
-            return eventRepository.findByStatus(ActiveStatus.ACTIVE);
+            return eventRepository.findByOrganizationId(userAuthorize.getOrganization());
         } catch (Exception e) {
             throw new RuntimeException("Error fetching all events: " + e.getMessage(), e);
         }

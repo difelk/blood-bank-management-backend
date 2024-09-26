@@ -53,6 +53,7 @@ public class UserActivity {
         this.userId = userId;
     }
 
+
     public String getActivityType() {
         return activityType;
     }

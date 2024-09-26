@@ -1,8 +1,10 @@
 package com.bcn.bmc.services;
 
 import com.bcn.bmc.enums.ActiveStatus;
+import com.bcn.bmc.enums.ActivityStatus;
 import com.bcn.bmc.helper.TokenData;
 import com.bcn.bmc.models.*;
+import com.bcn.bmc.repositories.UserActivityRepository;
 import com.bcn.bmc.repositories.UserAddressRepository;
 import com.bcn.bmc.repositories.UserRepository;
 import jakarta.transaction.Transactional;
@@ -10,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,8 +22,11 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
+    private final UserActivityRepository userActivityRepository;
+
+    public UserService(UserRepository userRepository, UserActivityRepository userActivityRepository) {
         this.userRepository = userRepository;
+        this.userActivityRepository = userActivityRepository;
     }
 
 
@@ -117,6 +123,7 @@ public class UserService {
                 userRepository.save(existingUser);
                 userResponse.setMessage("user update successful");
                 userResponse.setStatus(200);
+                userActivityRepository.save(new UserActivity(admin.getUserId(), "Update User", "Update User: " + existingUser.getNic(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             } else {
                 userResponse.setMessage("user does not exist");
                 userResponse.setStatus(404);
@@ -124,6 +131,7 @@ public class UserService {
         } catch(Exception e){
             userResponse.setMessage("ERROR: " + e.getMessage());
             userResponse.setStatus(500);
+            userActivityRepository.save(new UserActivity(admin.getUserId(), "Update User", "Update User failed ", "", LocalDateTime.now(), ActivityStatus.FAILURE));
         }
         return userResponse;
     }
@@ -143,10 +151,12 @@ public class UserService {
             }
             userRepository.resetPassword(password.getNic(), password.getNewPassword(), 0);
             userResponse.setMessage("password reset Successful");
+            userActivityRepository.save(new UserActivity(admin.getUserId(), "Password Reset", "Password Rest: " + password.getNic(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             userResponse.setStatus(200);
         }catch (Exception e){
             userResponse.setMessage("password reset Failed, with " + e.getMessage());
             userResponse.setStatus(200);
+            userActivityRepository.save(new UserActivity(admin.getUserId(), "Password Reset", "Password Failed: ", "", LocalDateTime.now(), ActivityStatus.FAILURE));
         }
 
         return userResponse;
@@ -209,9 +219,11 @@ public class UserService {
                 userRepository.save(user);
                 userResponse.setMessage("User has been marked as deleted");
                 userResponse.setStatus(200);
+                userActivityRepository.save(new UserActivity(admin.getUserId(), "User Delete", "User Delete: " + user.getNic(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             } catch (Exception e) {
                 userResponse.setMessage("Failed to mark user as deleted: " + e.getMessage());
                 userResponse.setStatus(500);
+                userActivityRepository.save(new UserActivity(admin.getUserId(), "User Delete", "User Delete Failed: " + user.getNic(), "", LocalDateTime.now(), ActivityStatus.FAILURE));
             }
         } else {
             userResponse.setMessage("User does not exist");

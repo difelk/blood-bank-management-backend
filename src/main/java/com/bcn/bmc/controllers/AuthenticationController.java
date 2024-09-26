@@ -1,7 +1,9 @@
 package com.bcn.bmc.controllers;
 
+import com.bcn.bmc.helper.TokenData;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.services.AuthenticationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,7 +15,8 @@ public class AuthenticationController {
 
 
     private final AuthenticationService authService;
-
+    @Autowired
+    private TokenData tokenHelper;
     public AuthenticationController(AuthenticationService authService) {
         this.authService = authService;
     }
@@ -25,10 +28,11 @@ public class AuthenticationController {
         return ResponseEntity.ok(authService.authenticate(request));
     }
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(
+    public ResponseEntity<AuthenticationResponse> register(@RequestHeader("Authorization") String tokenHeader,
             @RequestBody User request
     ) {
-        return ResponseEntity.ok(authService.register(request));
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+        return ResponseEntity.ok(authService.register(userAuthorize, request));
     }
 
     @GetMapping("/login/email/{email}")
@@ -49,8 +53,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login/reset-password")
-    public VerificationStatus resetPassword(@RequestBody PasswordReset details) {
-        return authService.resetPassword(details.getEmail(), details.getCode(), details.getPassword());
+    public VerificationStatus resetPassword(@RequestHeader("Authorization") String tokenHeader, @RequestBody PasswordReset details) {
+        UserAuthorize userAuthorize =  tokenHelper.parseToken(tokenHeader);
+        return authService.resetPassword(userAuthorize, details.getEmail(), details.getCode(), details.getPassword());
     }
 
     @PostMapping("/validateToken")

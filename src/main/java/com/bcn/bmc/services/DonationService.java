@@ -128,6 +128,8 @@ public class DonationService {
         }
     }
 
+
+
     public List<DonationDetails> getAllDonationsForStock(long id) {
         try {
             List<Donation> donations = donationRepository.findAllDonationsByOrg(id);

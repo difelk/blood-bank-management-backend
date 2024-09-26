@@ -56,6 +56,17 @@ public class Event {
     @Column(name = "created_date")
     private LocalDate createdDate = LocalDate.now();
 
+    public long getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(long organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    @Column(name = "organization_id")
+    private long organizationId;
+
     public Long getId() {
         return id;
     }

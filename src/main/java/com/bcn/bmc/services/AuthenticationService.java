@@ -3,8 +3,10 @@ package com.bcn.bmc.services;
 import ch.qos.logback.classic.pattern.DateConverter;
 import com.bcn.bmc.common.ConvertData;
 import com.bcn.bmc.enums.ActiveStatus;
+import com.bcn.bmc.enums.ActivityStatus;
 import com.bcn.bmc.models.*;
 import com.bcn.bmc.repositories.OrganizationRepository;
+import com.bcn.bmc.repositories.UserActivityRepository;
 import com.bcn.bmc.repositories.UserRepository;
 import com.bcn.bmc.repositories.VerificationCodeRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -40,11 +42,11 @@ public class AuthenticationService {
 
     private final OrganizationRepository organizationRepository;
 
-
+    private final UserActivityRepository userActivityRepository;
     public AuthenticationService(UserRepository repository,
                                  PasswordEncoder passwordEncoder,
                                  JwtService jwtService,EmailService emailService,OrganizationRepository organizationRepository,
-                                 AuthenticationManager authenticationManager, VerificationCodeRepository verificationCodeRepository) {
+                                 AuthenticationManager authenticationManager, VerificationCodeRepository verificationCodeRepository, UserActivityRepository userActivityRepository) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -52,10 +54,11 @@ public class AuthenticationService {
         this.verificationCodeRepository = verificationCodeRepository;
         this.organizationRepository = organizationRepository;
         this.emailService = emailService;
+        this.userActivityRepository = userActivityRepository;
     }
 
 
-    public AuthenticationResponse register(User request) {
+    public AuthenticationResponse register(UserAuthorize admin, User request) {
         try {
             if (repository.findByUsername(request.getUsername()).isPresent()) {
                 return new AuthenticationResponse(-1,null, "User already exists");
@@ -82,24 +85,28 @@ public class AuthenticationService {
             String jwt = jwtService.generateToken(user);
 
             String code = generateVerificationCode();
-            System.out.println("veri code: "+code);
             String createdCode =  createVerificationCode(code, user.getEmail(), user.getId(), "User Registration", com.bcn.bmc.enums.VerificationStatus.PENDING);
 
             if(!createdCode.isEmpty()){
                 emailService.sendVerificationEmailToNewlyCreatedUser(user.getEmail(), user.getFirstName(), user.getLastName(), "Registration Successful",code, user.getUsername(),  request.getPassword());
             }
-
+            userActivityRepository.save(new UserActivity(admin.getUserId(), "Create User", "Create User: " + user.getNic(), "", LocalDateTime.now(), ActivityStatus.SUCCESS));
             return new AuthenticationResponse(user.getId(),jwt, "User registration was successful");
         } catch(DataIntegrityViolationException e) {
+            userActivityRepository.save(new UserActivity(admin.getUserId(), "Create User", "Create User Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             System.out.println("error reg: " + e.getMessage());
             return new AuthenticationResponse(-1,null, "ERROR: Username already exists");
         } catch (InvalidDataAccessApiUsageException e) {
+            userActivityRepository.save(new UserActivity(admin.getUserId(), "Create User", "Create User Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             return new AuthenticationResponse(-1,null, "ERROR: Invalid data access API usage");
         } catch (TransactionSystemException e) {
+            userActivityRepository.save(new UserActivity(admin.getUserId(), "Create User", "Create User Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             return new AuthenticationResponse(-1,null, "ERROR: Transaction system exception");
         } catch (PersistenceException e) {
+            userActivityRepository.save(new UserActivity(admin.getUserId(), "Create User", "Create User Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             return new AuthenticationResponse(-1,null, "ERROR: Persistence exception");
         } catch (Exception e) {
+            userActivityRepository.save(new UserActivity(admin.getUserId(), "Create User", "Create User Failed", "", LocalDateTime.now(), ActivityStatus.FAILURE));
             return new AuthenticationResponse(-1,null, "User registration failed: " + e.getMessage());
         }
     }
@@ -222,7 +229,7 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public VerificationStatus resetPassword( String email, String code, String newPassword){
+    public VerificationStatus resetPassword(UserAuthorize admin, String email, String code, String newPassword){
         if(!email.isEmpty() && !code.isEmpty() && !newPassword.isEmpty()){
             VerificationStatus verificationStatus = checkEmailAndVerificationCodeValid(email, code);
             if(verificationStatus.isExist()){
@@ -234,11 +241,14 @@ public class AuthenticationService {
                   int verificationUsed =  verificationCodeRepository.updateVerificationCode(com.bcn.bmc.enums.VerificationStatus.USED, email, code);
                     System.out.println("verificationUsed = " + verificationUsed);
                   if(FirstTimeLoginValidated(email, encryptedPassword) > 0) {
+                      userActivityRepository.save(new UserActivity(admin.getUserId(), "Reset Password", "Reset Password: " + email, "", LocalDateTime.now(), ActivityStatus.SUCCESS));
                       return new VerificationStatus(true, "Password reset successfully. Please log in using your new password.", verificationStatus.getUserid());
                   }else{
+                      userActivityRepository.save(new UserActivity(admin.getUserId(), "Reset Password", "Reset Password Failed " + email, "", LocalDateTime.now(), ActivityStatus.FAILURE));
                       return new VerificationStatus(false, "Password reset failed due to a internal issue. please try again", -1);
                   }
                   } else {
+                    userActivityRepository.save(new UserActivity(admin.getUserId(), "Reset Password", "Reset Password Failed " + email, "", LocalDateTime.now(), ActivityStatus.FAILURE));
                     return new VerificationStatus(false, "Password reset failed. Please try again and ensure you have entered the correct email and verification code sent to your email.", -1);
                 }
             }else{

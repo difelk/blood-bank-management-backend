@@ -36,8 +36,10 @@ public class DonationController {
     @GetMapping("/")
     public List<DonationDetails> getAllDonations(@RequestHeader("Authorization") String tokenHeader) {
         UserAuthorize userAuthorize = tokenHelper.parseToken(tokenHeader);
+        System.out.println("getAllDonations callled");
         return donationService.getAllDonations(userAuthorize);
     }
+
 
     @GetMapping("/donor/{donor}")
     public List<DonationDetails> getAllDonationsByDonorId(@RequestHeader("Authorization") String tokenHeader, @PathVariable Long donor) {
